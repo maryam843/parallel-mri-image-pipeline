@@ -125,8 +125,8 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 ## Part B: the provided Training/Testing split, used as it is
 - **Choice:** the main result trains on the dataset's Training folder and scores on its Testing folder, unchanged. A second score leaves out the Testing images that have a duplicate candidate in Training.
 - **Alternatives:** re-split the data, or remove suspected duplicates before the main result.
-- **Reason:** the provided split is what other people using this dataset report on, so the main number stays comparable. The second score shows how much the near duplicates could flatter it.
-- **Trade-off:** the main number may be optimistic if the near duplicates are real; the second score is there to show by how much.
+- **Reason:** the split is part of the dataset as published, so the main number uses the data as given. The second score is a check on how much the near duplicates matter.
+- **Trade-off:** the main number may be optimistic because of the near duplicates. The second score cannot measure that cleanly either: leaving out the flagged images also changes the class mix (most of the no-tumour test images are flagged).
 
 ## Part B: near duplicates need both perceptual hashes to agree
 - **Choice:** a pair is a near-duplicate candidate when a difference hash (dHash) and a DCT hash (pHash) are both within 4 of 64 bits. Pair counts for each hash at 0, 2, 4 and 8 bits are reported too.

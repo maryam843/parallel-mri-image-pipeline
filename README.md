@@ -317,7 +317,7 @@ Testing split as provided, mean +/- sd over seeds (`results/part_b/per_class_sum
 
 ![Part B per-class F1](figures/part_b/per_class_f1.png)
 
-**Plain conclusion:** on this split, my GLCM features with a random forest (0.872) beat my small CNN (0.833), and the CNN varies much more between seeds. Glioma is the hardest class for both: the random forest finds 0.667 of the glioma images and the CNN 0.583. Both models score lower when the near-duplicate test images are left out (0.815 and 0.789 on 1058 images), so the scores on the provided split are flattered by those near duplicates. A pretrained network would be the obvious next step; I did not try one.
+**Plain conclusion:** on this split, my GLCM features with a random forest (0.872) beat my small CNN (0.833), and the CNN varies much more between seeds. Glioma is the hardest class for both: the random forest finds 0.667 of the glioma images and the CNN 0.583. Both models score lower when the near-duplicate test images are left out (0.815 and 0.789 on 1058 images). That second test set is not a fair copy of the first, though: the near duplicates sit mostly in the no-tumour class, and only 42 of its 400 test images remain (`results/part_b/per_class_summary.csv`). So the drop mixes two things, fewer near duplicates and a different class mix, and I cannot separate them with these runs. What it does show is that the scores on the provided split should not be read as scores on unseen patients. I did not try a pretrained network.
 
 ![Part B CNN training loss](figures/part_b/cnn_training_loss.png)
 
