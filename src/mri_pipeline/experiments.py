@@ -244,6 +244,7 @@ def run_scaling(
     tag: str = "",
     task_name: str = "filters",
     resize: int | None = None,
+    classes: dict[str, int] | None = None,
     worker_threads: int | None = None,
 ) -> dict[str, Any]:
     """Time the filter stage (6 filters per image, full arrays returned to the
@@ -251,11 +252,12 @@ def run_scaling(
 
     Repeats are interleaved (all configurations once, then again) so that
     slow drifts of the machine affect every configuration equally.
+    ``classes`` maps class folder names to labels (default: the yes/no dataset);
     ``worker_threads`` limits BLAS/OpenMP threads in each pool worker.
     """
     started = utc_now()
     suffix = f"_{tag}" if tag else ""
-    records = select_subset(io.list_images(data_dir), n_images, seed)
+    records = select_subset(io.list_images(data_dir, classes), n_images, seed)
     images = io.load_images(records, size=resize)
     if task_name == "filters":
         task = functools.partial(apply_filters, mode=mode)
