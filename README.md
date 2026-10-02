@@ -13,6 +13,7 @@ I take brain MRI images through six image filters and a texture-feature step, ru
 - **The problem:** the filtering is slow, so I split the work across CPU cores. The real question is how much time that saves, and why not more.
 - **How it works:** images in, then 6 filters per image in parallel worker processes, then 168 texture features per image, then cross-validated models compared with simple baselines. Out come CSV/JSON results, tables and charts.
 - **Main result:** on a 4-core machine the parallel version gives identical outputs and runs 2.34x faster on the real images, and up to 3.84x when every image has the same size, because very uneven image sizes are the main limit. The texture features do not beat a simple model on raw pixels (0.752 vs 0.803 accuracy).
+- **Part B:** the same pipeline on a larger public dataset with 4 classes (7200 images), run on my laptop CPU. GLCM features with a random forest reach 0.872 accuracy and a small CNN 0.833 on the provided test split, and both score lower once near-duplicate test images are left out (see [Part B](#part-b-a-larger-4-class-dataset)).
 - **Why it matters:** it shows how I find the slow part of a data pipeline, parallelise it safely, and check my own numbers before quoting them.
 
 > Demo video: **placeholder**, to be recorded by me later (under 10 MB). Until then, the walkthrough notebook `notebooks/walkthrough.ipynb` shows every step.
@@ -224,6 +225,115 @@ How much the duplicate files would have flattered the scores (same models, plain
 
 The random forest gains the most from leaked duplicates (see the Difference column), because it can memorise an exact copy it saw in training.
 
+## Part B: a larger 4-class dataset
+
+Here I run the same pipeline on the "Brain Tumor MRI Dataset" (Version 2, Kaggle, see Credits): glioma, meningioma, pituitary and no tumour, with a Training/Testing split provided by the author. Everything ran headless on my laptop CPU through `notebooks/part_b_larger_dataset_colab.ipynb` (`python scripts/run_part_b.py`). The main result uses the provided split as it is. The same notebook still runs on Colab.
+
+**Not a medical tool.** These are exercise models on one public dataset. Nothing here should be used to make decisions about a patient.
+
+### Count check
+
+<!-- BEGIN:part_b_counts -->
+Images found vs expected: 7200 of 7200, differences: 0 (`results/part_b/dataset_counts.json`)
+
+| Split | glioma | meningioma | notumor | pituitary | Total |
+|---|---:|---:|---:|---:|---:|
+| Training | 1400 | 1400 | 1400 | 1400 | 5600 |
+| Testing | 400 | 400 | 400 | 400 | 1600 |
+<!-- END:part_b_counts -->
+
+### Duplicate check
+
+The dataset page says duplicates were removed and the train/test overlap was eliminated. I checked both. Exact copies use SHA-256 of the file bytes. Near duplicates use two 64-bit perceptual hashes (dHash and pHash); a pair is a candidate when both hashes are within 4 bits.
+
+<!-- BEGIN:part_b_duplicates -->
+64-bit perceptual hashes, pairs counted by Hamming distance (`results/part_b/duplicates.json`)
+
+| Check | Within Training | Within Testing | Across splits |
+|---|---:|---:|---:|
+| Exact copies (SHA-256): extra copies inside the split | 171 | 16 | n/a |
+| Exact copies (SHA-256): Testing files with a copy in Training | n/a | n/a | 0 |
+| dHash pairs within 4 bits | 9325 | 884 | 4990 |
+| pHash pairs within 4 bits | 3432 | 416 | 2022 |
+| Candidate pairs (dHash and pHash both within 4 bits) | 2620 | 354 | 1658 |
+| Candidate pairs with different class labels | 0 | 4 | 4 |
+| Testing images with a candidate in Training | n/a | n/a | 542 |
+<!-- END:part_b_duplicates -->
+
+No file is shared byte for byte between Training and Testing, but 171 extra exact copies remain inside Training and 16 inside Testing. The near-duplicate check finds much more: 542 Testing images have a candidate in Training. To make sure these are not just hash collisions, I compared every candidate pair pixel by pixel at 128x128 (`scripts/check_duplicate_candidates.py`, `results/part_b/duplicate_candidates_pixel.json`): across the splits the median correlation of a pair is 0.9956, and 431 Testing images have a Training partner with a correlation of at least 0.99. I also looked at 2 pairs by eye: the median pair looks like the same image, and the weakest across-split pair looks like a neighbouring slice of the same scan. So exact copies across the split are gone, but a lot of near-duplicate overlap between Training and Testing remains.
+
+### Speedup of the filter stage
+
+<!-- BEGIN:part_b_scaling -->
+Task `filters`: 200 images, fast mode, resized to 256x256, largest image = 0.5 % of all pixels, 3 run(s) each, 12 logical cores, 6 physical (AMD Ryzen 7 7445HS w/ Radeon 740M Graphics), start method `spawn` (`results/part_b/scaling_summary.csv`)
+
+| Configuration | Processes | Time (s), mean +/- sd | Speedup | Efficiency |
+|---|---:|---:|---:|---:|
+| Sequential loop (no pool) | 1 | 88.24 +/- 8.08 | 1.00x | 1.00 |
+| Pool.map | 1 | 93.02 +/- 6.17 | 0.95x +/- 0.06 | 0.95 |
+| Pool.map | 2 | 52.25 +/- 3.84 | 1.70x +/- 0.13 | 0.85 |
+| Pool.map | 4 | 31.47 +/- 5.04 | 2.85x +/- 0.44 | 0.71 |
+| Pool.map | 6 | 29.28 +/- 10.13 | 3.26x +/- 1.08 | 0.54 |
+| Pool.map | 8 | 25.23 +/- 7.80 | 3.73x +/- 1.15 | 0.47 |
+| Pool.map | 10 | 30.48 +/- 23.09 | 3.97x +/- 2.15 | 0.40 |
+| Pool.map | 12 | 17.77 +/- 1.24 | 4.98x +/- 0.35 | 0.41 |
+<!-- END:part_b_scaling -->
+
+![Part B speedup vs processes](figures/part_b/scaling_speedup.png)
+
+On this laptop the pool reaches 4.98x with 12 processes and 3.26x with 6, one per physical core. The spread is large at 6 to 10 processes because the first of the three rounds was much slower there (`results/part_b/scaling_runs.csv`); other programs were open on the laptop and free memory was low (`memory_at_start` in `results/part_b/run_info.json`). Each worker gets one BLAS thread (see `docs/DECISIONS.md`). Parallel outputs were identical to sequential outputs (`results/part_b/parallel_equivalence.json`).
+
+### GLCM + random forest vs a small CNN
+
+Both models are trained on the whole Training split and scored on the Testing split, three times with seeds 0, 1 and 2. The GLCM features come from 256x256 images (fast mode, 168 features). The random forest has 300 trees. The CNN has four convolution blocks and 97908 parameters, takes 128x128 grayscale input and trains from scratch for 20 epochs with no validation split, so the Testing split is never used to choose anything. It is small on purpose, so that it trains on a CPU (672 to 695 s per seed here). The second evaluation leaves out the Testing images that have a near-duplicate candidate in Training.
+
+<!-- BEGIN:part_b_models -->
+Trained on the Training split, seeds 0, 1, 2, mean +/- sd over seeds (`results/part_b/per_class_summary.csv`)
+
+| Model | Test set | Test images | Accuracy | Macro F1 |
+|---|---|---:|---:|---:|
+| GLCM + random forest | Testing split as provided | 1600 | 0.872 +/- 0.002 | 0.867 +/- 0.002 |
+| Small CNN | Testing split as provided | 1600 | 0.833 +/- 0.026 | 0.827 +/- 0.021 |
+| GLCM + random forest | Testing without cross-split duplicate candidates | 1058 | 0.815 +/- 0.002 | 0.762 +/- 0.003 |
+| Small CNN | Testing without cross-split duplicate candidates | 1058 | 0.789 +/- 0.037 | 0.759 +/- 0.024 |
+<!-- END:part_b_models -->
+
+<!-- BEGIN:part_b_per_class -->
+Testing split as provided, mean +/- sd over seeds (`results/part_b/per_class_summary.csv`)
+
+| Model | Class | Precision | Recall | F1 | Support |
+|---|---|---:|---:|---:|---:|
+| GLCM + random forest | glioma | 0.884 +/- 0.003 | 0.667 +/- 0.003 | 0.761 +/- 0.003 | 400 |
+| GLCM + random forest | meningioma | 0.811 +/- 0.006 | 0.867 +/- 0.003 | 0.838 +/- 0.003 | 400 |
+| GLCM + random forest | notumor | 0.859 +/- 0.005 | 1.000 +/- 0.000 | 0.924 +/- 0.003 | 400 |
+| GLCM + random forest | pituitary | 0.940 +/- 0.003 | 0.952 +/- 0.004 | 0.946 +/- 0.001 | 400 |
+| Small CNN | glioma | 0.980 +/- 0.021 | 0.583 +/- 0.046 | 0.730 +/- 0.034 | 400 |
+| Small CNN | meningioma | 0.687 +/- 0.069 | 0.892 +/- 0.020 | 0.775 +/- 0.039 | 400 |
+| Small CNN | notumor | 0.874 +/- 0.030 | 0.963 +/- 0.044 | 0.915 +/- 0.007 | 400 |
+| Small CNN | pituitary | 0.912 +/- 0.068 | 0.891 +/- 0.185 | 0.889 +/- 0.076 | 400 |
+<!-- END:part_b_per_class -->
+
+![Part B confusion matrices](figures/part_b/confusion_matrices.png)
+
+![Part B per-class F1](figures/part_b/per_class_f1.png)
+
+**Plain conclusion:** on this split, my GLCM features with a random forest (0.872) beat my small CNN (0.833), and the CNN varies much more between seeds. Glioma is the hardest class for both: the random forest finds 0.667 of the glioma images and the CNN 0.583. Both models score lower when the near-duplicate test images are left out (0.815 and 0.789 on 1058 images), so the scores on the provided split are flattered by those near duplicates. A pretrained network would be the obvious next step; I did not try one.
+
+![Part B CNN training loss](figures/part_b/cnn_training_loss.png)
+
+<!-- BEGIN:part_b_times -->
+Wall-clock time of each step in one run of the notebook (`results/part_b/run_info.json`)
+
+| Step | Time (s) |
+|---|---:|
+| Count check (list and SHA-256 every file) | 6.4 |
+| Duplicate check (perceptual hashes and pair search) | 13.6 |
+| Speedup benchmark (all configurations and repeats) | 1120.8 |
+| GLCM features for all images (parallel) | 819.5 |
+| Random forest, fit and predict (all seeds) | 8.9 |
+| Small CNN, load, train and predict (all seeds) | 2056.2 |
+<!-- END:part_b_times -->
+
 ## Design choices and pitfalls handled
 
 | Pitfall | What would go wrong | What the code does | Test |
@@ -242,7 +352,8 @@ The random forest gains the most from leaked duplicates (see the Difference colu
 - Timings are machine-specific: 4 vCPUs on a cloud virtual machine. The virtual machine reports 1 thread per core, but I cannot see how its cores map to physical hardware.
 - Fast mode (Hessian sigmas 1-9) is not the same computation as full mode; the full-mode numbers come from a 16-image subset and a single run.
 - The Gabor filter runs on uint8 input and returns uint8, so its negative responses wrap. I kept the course filter settings unchanged and documented it in `docs/DECISIONS.md`.
-- I did not try a CNN on this dataset. A prepared (not run) Colab notebook for a larger dataset is in `notebooks/part_b_larger_dataset_colab.ipynb`.
+- I did not try a CNN on the 253-image dataset. Part B has a small CNN baseline on the larger dataset, trained from scratch on a CPU; it is a baseline, not a tuned model.
+- Part B uses one provided split and three seeds, so the spread shows training noise only, not how the scores would change on another split or on scans from another hospital. Its timings come from a laptop with other programs open.
 
 ## What I learned (to be written by me)
 
@@ -282,6 +393,15 @@ python scripts/make_figures.py
 python scripts/update_readme_tables.py
 ```
 
+Part B (download the dataset from Kaggle first, read its licence, keep it outside the repo). The CNN needs PyTorch from `requirements-part-b.txt`, which `requirements-dev.txt` already includes; on Linux add `--extra-index-url https://download.pytorch.org/whl/cpu` to get the CPU build:
+
+```bash
+export MRI_PART_B_LICENCE=CC-BY-4.0                # confirms you have read the licence
+export MRI_PART_B_DATA_DIR=/path/to/archive        # the folder with Training/ and Testing/
+python scripts/run_part_b.py                       # writes results/part_b/ and figures/part_b/
+python scripts/check_duplicate_candidates.py       # pixel check of the near-duplicate candidates
+```
+
 The walkthrough notebook runs on synthetic images by default. To execute it and save its outputs:
 
 ```bash
@@ -307,8 +427,9 @@ python scripts/pii_scan.py --history          # secrets / personal data in the w
 - **Course staff, DSAI3202 (UDST):** the six filter calls and their parameters, and the `compute_glcm_features` helper. `src/mri_pipeline/filters.py` and the GLCM part of `src/mri_pipeline/features.py` are based on them, and the header of each file says "Provided by DSAI3202 course staff (UDST). Modified by me: yes" and what I changed.
 - **My own work:** the parallel pipeline, the experiments, the evaluation, the tests, the scripts, the notebooks and the documentation.
 - **Dataset:** Navoneel Chakrabarty, "Brain MRI Images for Brain Tumor Detection", Kaggle (not redistributed here).
-- **Libraries:** NumPy, SciPy, scikit-image, scikit-learn, OpenCV, matplotlib.
+- **Part B dataset:** "Brain Tumor MRI Dataset" by Masoud Nickparvar, Kaggle, Version 2: <https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset>. Licence: CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). The author built it from three original sources: figshare, SARTAJ and Br35H. The images are not redistributed here; resizing and normalisation are done by my code.
+- **Libraries:** NumPy, SciPy, scikit-image, scikit-learn, OpenCV, matplotlib, PyTorch (Part B).
 
 ## Licence
 
-My code is under the MIT licence (`LICENSE`). Course-provided parts remain the work of their authors (see Credits). The dataset is not part of this repo and is not covered by the licence.
+My code is under the MIT licence (`LICENSE`). Course-provided parts remain the work of their authors (see Credits). The datasets are not part of this repo and are not covered by the licence.
