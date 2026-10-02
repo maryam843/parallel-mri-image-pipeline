@@ -14,6 +14,8 @@ import json
 import os
 import platform
 import statistics
+import subprocess
+import sys
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
@@ -57,7 +59,45 @@ def cpu_model() -> str:
                     return line.split(":", 1)[1].strip()
     except OSError:
         pass
+    if sys.platform == "win32":  # platform.processor() only gives the CPU family there
+        try:
+            import winreg
+
+            key = r"HARDWARE\DESCRIPTION\System\CentralProcessor\0"
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key) as handle:
+                return str(winreg.QueryValueEx(handle, "ProcessorNameString")[0]).strip()
+        except OSError:
+            pass
     return platform.processor() or "unknown"
+
+
+def physical_cores() -> int | None:
+    """Physical CPU cores (os.cpu_count() counts hardware threads), or None if unknown."""
+    if sys.platform == "win32":
+        command = "(Get-CimInstance Win32_Processor | Measure-Object NumberOfCores -Sum).Sum"
+        try:
+            out = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", command],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            ).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return int(out) if out.isdigit() else None
+    try:
+        with open("/proc/cpuinfo", encoding="utf-8") as handle:
+            text = handle.read()
+    except OSError:
+        return None
+    cores = set()
+    for block in text.split("\n\n"):
+        fields = dict(
+            (k.strip(), v.strip()) for k, _, v in (ln.partition(":") for ln in block.splitlines())
+        )
+        if "core id" in fields:
+            cores.add((fields.get("physical id", "0"), fields["core id"]))
+    return len(cores) or None
 
 
 def machine_info(start_method: str | None = None) -> dict[str, Any]:
@@ -73,6 +113,7 @@ def machine_info(start_method: str | None = None) -> dict[str, Any]:
         "machine": platform.machine(),
         "cpu_model": cpu_model(),
         "os_cpu_count": os.cpu_count(),
+        "physical_cores": physical_cores(),
         "usable_cores": available_cores(),
         "python": platform.python_version(),
         "start_method": start_method or start_method_from_env() or get_context().get_start_method(),
