@@ -1,0 +1,13 @@
+config,strategy,processes,chunksize,repeat,seconds
+map_auto,map,4,auto,0,18.1446
+map_c1,map,4,1,0,14.7231
+imap_unordered_c1,imap_unordered,4,1,0,14.8198
+imap_unordered_auto,imap_unordered,4,auto,0,17.6343
+map_auto,map,4,auto,1,17.7205
+map_c1,map,4,1,1,14.7909
+imap_unordered_c1,imap_unordered,4,1,1,15.0945
+imap_unordered_auto,imap_unordered,4,auto,1,18.1338
+map_auto,map,4,auto,2,17.631
+map_c1,map,4,1,2,14.6381
+imap_unordered_c1,imap_unordered,4,1,2,14.8857
+imap_unordered_auto,imap_unordered,4,auto,2,18.0679

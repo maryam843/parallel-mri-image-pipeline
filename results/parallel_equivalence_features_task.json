@@ -1,0 +1,29 @@
+{
+  "all_equal": true,
+  "per_config": {
+    "map_p1": {
+      "features": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p2": {
+      "features": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p3": {
+      "features": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p4": {
+      "features": {
+        "array_equal": true,
+        "allclose": true
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "what": "cProfile of the sequential pipeline (6 filters + GLCM) per stage",
+  "mode": "fast",
+  "n_images": 5,
+  "seed": 0,
+  "images": [
+    "no/46 no.jpg",
+    "no/N3.jpg",
+    "no/no 6.jpg",
+    "yes/Y161.JPG",
+    "yes/Y168.jpg"
+  ],
+  "image_shapes": [
+    [
+      530,
+      380
+    ],
+    [
+      275,
+      220
+    ],
+    [
+      236,
+      214
+    ],
+    [
+      351,
+      273
+    ],
+    [
+      300,
+      263
+    ]
+  ],
+  "machine": {
+    "os": "Linux",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "os_cpu_count": 4,
+    "usable_cores": 4,
+    "python": "3.12.3",
+    "start_method": "fork",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "scikit-image": "0.26.0",
+      "scikit-learn": "1.9.1",
+      "opencv-python-headless": "5.0.0.93",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "started_utc": "2026-10-01T21:46:39Z",
+  "finished_utc": "2026-10-01T21:46:43Z"
+}

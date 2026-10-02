@@ -1,0 +1,28 @@
+{
+  "n_images": 253,
+  "class_counts": {
+    "no": 98,
+    "yes": 155
+  },
+  "extension_counts": {
+    "no": {
+      ".jpeg": 6,
+      ".jpg": 85,
+      ".JPG": 6,
+      ".png": 1
+    },
+    "yes": {
+      ".jpg": 86,
+      ".JPG": 68,
+      ".png": 1
+    }
+  },
+  "n_unique_files": 228,
+  "n_duplicate_files": 25,
+  "duplicate_groups": 22,
+  "cross_class_duplicate_groups": 0,
+  "found_by_lowercase_jpg_glob": {
+    "no": 85,
+    "yes": 86
+  }
+}

@@ -1,0 +1,245 @@
+{
+  "all_equal": true,
+  "per_config": {
+    "map_p1": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p2": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p3": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_p4": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_auto": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "map_c1": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "imap_unordered_c1": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    },
+    "imap_unordered_auto": {
+      "Input": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Entropy": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gaussian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Sobel": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Gabor": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Hessian": {
+        "array_equal": true,
+        "allclose": true
+      },
+      "Prewitt": {
+        "array_equal": true,
+        "allclose": true
+      }
+    }
+  }
+}

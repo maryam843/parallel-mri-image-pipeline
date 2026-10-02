@@ -1,0 +1,83 @@
+{
+  "what": "stratified group K-fold CV (group = file SHA-256) on all images; 'leaky' rows ignore groups and exist only to measure leakage",
+  "mode": "fast",
+  "n_images": 253,
+  "n_unique_files": 228,
+  "n_duplicate_files": 25,
+  "class_counts": {
+    "no": 98,
+    "yes": 155
+  },
+  "extension_counts": {
+    "no": {
+      ".jpeg": 6,
+      ".jpg": 85,
+      ".JPG": 6,
+      ".png": 1
+    },
+    "yes": {
+      ".jpg": 86,
+      ".JPG": 68,
+      ".png": 1
+    }
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "n_splits": 5,
+  "metrics_note": "mean and sd over all folds of all seeds (n_splits x len(seeds) folds)",
+  "tumour_label": 1,
+  "groups_shared_between_train_and_test": {
+    "grouped_seed0": 0,
+    "grouped_seed1": 0,
+    "grouped_seed2": 0,
+    "leaky_seed0": 32,
+    "leaky_seed1": 36,
+    "leaky_seed2": 39
+  },
+  "feature_extraction": {
+    "processes": 4,
+    "seconds": 107.025,
+    "strategy": "Pool.map"
+  },
+  "feature_sha256": {
+    "raw_pixels_64": "d9e21a35bef8f1eabe33d1f4bb08659a416dcafb0664e6ada419c10804e3242c",
+    "glcm_minmax": "e50eaa80087efb36a35e0d1bb5819732f09471644a7d67bffa5672476ad4b275",
+    "glcm_direct_cast": "e59e9994731065ed5d55a69e747b7ce7f18924ce209e175be22ae54cee5996a1"
+  },
+  "feature_shapes": {
+    "raw_pixels_64": [
+      253,
+      4096
+    ],
+    "glcm_minmax": [
+      253,
+      168
+    ],
+    "glcm_direct_cast": [
+      253,
+      168
+    ]
+  },
+  "machine": {
+    "os": "Linux",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "os_cpu_count": 4,
+    "usable_cores": 4,
+    "python": "3.12.3",
+    "start_method": "fork",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "scikit-image": "0.26.0",
+      "scikit-learn": "1.9.1",
+      "opencv-python-headless": "5.0.0.93",
+      "matplotlib": "3.11.2"
+    }
+  },
+  "started_utc": "2026-10-01T22:11:49Z",
+  "finished_utc": "2026-10-01T22:15:03Z"
+}

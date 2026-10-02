@@ -1,0 +1,6 @@
+config,strategy,processes,chunksize,effective_chunksize,runs,mean_s,sd_s,speedup_mean,speedup_sd,efficiency
+sequential,sequential,1,n/a,n/a,3,14.35,0.08,1.0,0.0,1.0
+map_p1,map,1,auto,10,3,14.613,0.124,0.982,0.008,0.982
+map_p2,map,2,auto,5,3,7.378,0.069,1.945,0.018,0.973
+map_p3,map,3,auto,4,3,6.064,0.294,2.37,0.112,0.79
+map_p4,map,4,auto,3,3,4.443,0.235,3.236,0.176,0.809
