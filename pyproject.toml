@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mri-pipeline"
+version = "1.0.0"
+description = "Parallel brain-MRI filtering and GLCM feature pipeline with honest benchmarks"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Maryam Mahaboob" }]
+
+[project.scripts]
+mri-pipeline = "mri_pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "NPY"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "slow: slower integration tests (subprocess or notebook execution)",
+]
+
+[tool.coverage.run]
+source = ["mri_pipeline"]
+branch = true
+parallel = true
+concurrency = ["multiprocessing"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

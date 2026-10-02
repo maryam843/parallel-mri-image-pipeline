@@ -1,0 +1,28 @@
+# data is never committed (third-party medical images, licence unclear)
+data/
+# scratch output from runs, tests and notebook executions
+results/scratch/
+data_synthetic/
+ci_data/
+ci_results/
+*.tmp
+# caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+# never commit these
+*.pdf
+kaggle.json
+.env
