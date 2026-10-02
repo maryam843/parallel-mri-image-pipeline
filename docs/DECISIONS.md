@@ -121,3 +121,27 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 - **Alternatives:** unpinned; the GUI build of OpenCV.
 - **Reason:** reproducible installs on CI (Linux and Windows); no GUI libraries needed.
 - **Trade-off:** versions need updating by hand.
+
+## Part B: the provided Training/Testing split, used as it is
+- **Choice:** the main result trains on the dataset's Training folder and scores on its Testing folder, unchanged. A second score leaves out the Testing images that have a duplicate candidate in Training.
+- **Alternatives:** re-split the data, or remove suspected duplicates before the main result.
+- **Reason:** the provided split is what other people using this dataset report on, so the main number stays comparable. The second score shows how much the near duplicates could flatter it.
+- **Trade-off:** the main number may be optimistic if the near duplicates are real; the second score is there to show by how much.
+
+## Part B: near duplicates need both perceptual hashes to agree
+- **Choice:** a pair is a near-duplicate candidate when a difference hash (dHash) and a DCT hash (pHash) are both within 4 of 64 bits. Pair counts for each hash at 0, 2, 4 and 8 bits are reported too.
+- **Alternatives:** one hash and one threshold; a learned image embedding.
+- **Reason:** brain MRI slices look alike at 8x8 or 32x32, so one hash alone flags many unrelated pairs. Requiring both cuts those down, and the counts at several thresholds show how sensitive the result is.
+- **Trade-off:** it can still flag different images that look very similar, and it can miss copies that were cropped or rotated.
+
+## Part B: one BLAS/OpenMP thread per pool worker
+- **Choice:** Part B pools start their workers with `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` and `MKL_NUM_THREADS` set to 1 (`worker_threads=1`). Part A's default is unchanged.
+- **Alternatives:** library defaults.
+- **Reason:** on Windows each worker with default settings reserved about 750 MB of commit memory (a BLAS buffer per hardware thread), so 12 workers ran out of commit memory on the laptop and the pool hung. With one thread a worker reserved about 42 MB (both measured once on the laptop, after importing the same libraries as a worker). N workers each starting N threads would also oversubscribe the CPU.
+- **Trade-off:** none measured: the sequential filter stage took the same time per image with 1 thread and with the default.
+
+## Part B: a small CNN sized for a laptop CPU
+- **Choice:** four convolution blocks (about 98 thousand parameters), 128x128 grayscale input, 20 epochs, 3 seeds, no validation split and no early stopping.
+- **Alternatives:** a pretrained network (transfer learning), a larger input, a GPU.
+- **Reason:** it trains in minutes per seed on a CPU and gives an honest from-scratch baseline. A fixed number of epochs means the Testing split is never used to choose anything.
+- **Trade-off:** it is a baseline, not a strong model. I did not try a pretrained network.
