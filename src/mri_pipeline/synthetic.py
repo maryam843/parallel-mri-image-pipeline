@@ -60,3 +60,47 @@ def make_dataset(out_dir: str | Path, n_per_class: int = 6, seed: int = 0) -> di
     # A non-image file that a loader must ignore.
     (out_dir / "no" / "notes.txt").write_text("not an image\n", encoding="utf-8")
     return counts
+
+
+def make_split_dataset(
+    out_dir: str | Path,
+    classes: tuple[str, ...] = ("glioma", "meningioma", "notumor", "pituitary"),
+    per_class: dict[str, int] | None = None,
+    seed: int = 0,
+) -> dict[str, dict[str, int]]:
+    """Create ``out_dir/<split>/<class>/`` folders like the Part B dataset.
+
+    Class k > 0 gets a bright blob of a class-specific size; the first class
+    named "notumor" (if any) gets none. The first Training image of the first
+    class is copied byte for byte into Testing (one cross-split exact copy),
+    and the second one is copied with a small brightness change (one
+    near duplicate). Returns the file counts per split and class.
+    """
+    per_class = per_class or {"Training": 6, "Testing": 3}
+    rng = np.random.default_rng(seed)
+    out_dir = Path(out_dir)
+    counts: dict[str, dict[str, int]] = {}
+    for split, n in per_class.items():
+        counts[split] = {}
+        for k, class_name in enumerate(classes):
+            class_dir = out_dir / split / class_name
+            class_dir.mkdir(parents=True, exist_ok=True)
+            for i in range(n):
+                image = synthetic_image(rng, (64, 64), tumour=False)
+                if class_name != "notumor":
+                    yy, xx = np.mgrid[0:64, 0:64]
+                    radius = 4 + 4 * k
+                    blob = np.exp(-((yy - 32) ** 2 + (xx - 32) ** 2) / (2 * radius**2))
+                    image = np.clip(image + 150 * blob, 0, 255).astype(np.uint8)
+                write_image(class_dir / f"{split[:2]}-{class_name}_{i:03d}.jpg", image)
+            counts[split][class_name] = n
+    first_class = classes[0]
+    train_files = sorted((out_dir / "Training" / first_class).iterdir())
+    test_dir = out_dir / "Testing" / first_class
+    (test_dir / "Te-copy_000.jpg").write_bytes(train_files[0].read_bytes())
+    near = cv2.imdecode(np.fromfile(str(train_files[1]), np.uint8), cv2.IMREAD_GRAYSCALE)
+    write_image(
+        test_dir / "Te-near_000.png", np.clip(near.astype(int) + 3, 0, 255).astype(np.uint8)
+    )
+    counts["Testing"][first_class] += 2
+    return counts
