@@ -1,0 +1,34 @@
+{
+  "distinct_shapes": 447,
+  "most_common_shapes": [
+    {
+      "height": 512,
+      "width": 512,
+      "images": 5014
+    },
+    {
+      "height": 225,
+      "width": 225,
+      "images": 338
+    },
+    {
+      "height": 630,
+      "width": 630,
+      "images": 90
+    },
+    {
+      "height": 251,
+      "width": 201,
+      "images": 57
+    },
+    {
+      "height": 221,
+      "width": 228,
+      "images": 51
+    }
+  ],
+  "min_height": 167,
+  "max_height": 1446,
+  "min_width": 150,
+  "max_width": 1375
+}

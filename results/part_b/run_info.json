@@ -1,0 +1,97 @@
+{
+  "dataset": {
+    "title": "Brain Tumor MRI Dataset",
+    "author": "Masoud Nickparvar",
+    "version": 2,
+    "url": "https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset",
+    "licence": "CC BY 4.0",
+    "source": "local folder from MRI_PART_B_DATA_DIR"
+  },
+  "main_evaluation": "the provided Training/Testing split, used as it is",
+  "second_evaluation": "Testing without images that have a duplicate candidate in Training",
+  "test_images": {
+    "test_as_provided": 1600,
+    "test_without_flagged": 1058
+  },
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "settings": {
+    "scaling_images": 200,
+    "scaling_resize": 256,
+    "scaling_repeats": 3,
+    "scaling_processes": [
+      1,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12
+    ],
+    "scaling_subset_seed": 0,
+    "hessian_mode": "fast",
+    "glcm_image_size": 256,
+    "rf_trees": 300,
+    "cnn_image_size": 128,
+    "cnn_epochs": 20,
+    "cnn_batch_size": 64,
+    "cnn_learning_rate": 0.001,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "quick_test_settings": false
+  },
+  "cnn": {
+    "parameters": 97908,
+    "torch_threads": 6
+  },
+  "step_seconds": {
+    "count_check": 6.36,
+    "duplicate_check": 13.55,
+    "scaling": 1120.78,
+    "glcm_features": 819.47,
+    "random_forest": 8.86,
+    "cnn": 2056.22
+  },
+  "fit_seconds": {
+    "glcm_rf_seed_0": 3.16,
+    "glcm_rf_seed_1": 2.82,
+    "glcm_rf_seed_2": 2.82,
+    "small_cnn_seed_0": 672.37,
+    "small_cnn_seed_1": 676.78,
+    "small_cnn_seed_2": 694.96
+  },
+  "machine": {
+    "os": "Windows",
+    "machine": "AMD64",
+    "cpu_model": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics",
+    "os_cpu_count": 12,
+    "physical_cores": 6,
+    "usable_cores": 12,
+    "python": "3.12.10",
+    "start_method": "spawn",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "scikit-image": "0.26.0",
+      "scikit-learn": "1.9.1",
+      "opencv-python-headless": "5.0.0.93",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1"
+    }
+  },
+  "memory_at_start": {
+    "total_gb": 15.2,
+    "available_gb": 2.5,
+    "free_commit_gb": 6.4
+  },
+  "worker_threads": 1,
+  "python_implementation": "CPython",
+  "started_utc": "2026-10-02T20:51:58Z",
+  "finished_utc": "2026-10-02T21:59:10Z"
+}

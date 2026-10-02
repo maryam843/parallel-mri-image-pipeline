@@ -1,0 +1,25 @@
+model,eval_set,class,precision_mean,precision_sd,recall_mean,recall_sd,f1_mean,f1_sd,support,seeds
+glcm_rf,test_as_provided,glioma,0.8841,0.0031,0.6675,0.0025,0.7607,0.0025,400,3
+glcm_rf,test_as_provided,meningioma,0.8113,0.0058,0.8667,0.0029,0.838,0.0026,400,3
+glcm_rf,test_as_provided,notumor,0.859,0.0046,1.0,0.0,0.9241,0.0027,400,3
+glcm_rf,test_as_provided,pituitary,0.9399,0.0033,0.9517,0.0038,0.9458,0.0007,400,3
+glcm_rf,test_as_provided,macro avg,0.8736,0.0017,0.8715,0.0018,0.8672,0.0018,1600,3
+glcm_rf,test_as_provided,accuracy,0.8715,0.0018,0.8715,0.0018,0.8715,0.0018,1600,3
+glcm_rf,test_without_flagged,glioma,0.8934,0.0035,0.6515,0.0027,0.7535,0.0027,373,3
+glcm_rf,test_without_flagged,meningioma,0.7446,0.0069,0.823,0.0056,0.7818,0.0024,275,3
+glcm_rf,test_without_flagged,notumor,0.3951,0.0078,1.0,0.0,0.5664,0.008,42,3
+glcm_rf,test_without_flagged,pituitary,0.9352,0.0035,0.9547,0.0042,0.9449,0.0002,368,3
+glcm_rf,test_without_flagged,macro avg,0.7421,0.0024,0.8573,0.0017,0.7616,0.0029,1058,3
+glcm_rf,test_without_flagged,accuracy,0.8154,0.0022,0.8154,0.0022,0.8154,0.0022,1058,3
+small_cnn,test_as_provided,glioma,0.9797,0.0209,0.5833,0.0456,0.7304,0.0343,400,3
+small_cnn,test_as_provided,meningioma,0.6872,0.0692,0.8925,0.0198,0.7746,0.0388,400,3
+small_cnn,test_as_provided,notumor,0.874,0.0304,0.9633,0.044,0.9155,0.0067,400,3
+small_cnn,test_as_provided,pituitary,0.9116,0.0683,0.8908,0.1848,0.8889,0.0757,400,3
+small_cnn,test_as_provided,macro avg,0.8631,0.0102,0.8325,0.0263,0.8274,0.0208,1600,3
+small_cnn,test_as_provided,accuracy,0.8325,0.0263,0.8325,0.0263,0.8325,0.0263,1600,3
+small_cnn,test_without_flagged,glioma,0.9894,0.0118,0.5693,0.0462,0.7219,0.0366,373,3
+small_cnn,test_without_flagged,meningioma,0.6357,0.0742,0.9261,0.0473,0.7507,0.0427,275,3
+small_cnn,test_without_flagged,notumor,0.5135,0.034,0.9603,0.0687,0.6673,0.0113,42,3
+small_cnn,test_without_flagged,pituitary,0.9227,0.0545,0.8895,0.1867,0.8945,0.0821,368,3
+small_cnn,test_without_flagged,macro avg,0.7653,0.0102,0.8363,0.0234,0.7586,0.0243,1058,3
+small_cnn,test_without_flagged,accuracy,0.7889,0.0375,0.7889,0.0375,0.7889,0.0375,1058,3

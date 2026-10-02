@@ -1,0 +1,104 @@
+{
+  "exact": {
+    "within_Training": {
+      "files": 5600,
+      "unique_files": 5429,
+      "duplicate_groups": 138,
+      "extra_copies": 171,
+      "groups_spanning_classes": 0
+    },
+    "within_Testing": {
+      "files": 1600,
+      "unique_files": 1584,
+      "duplicate_groups": 15,
+      "extra_copies": 16,
+      "groups_spanning_classes": 0
+    },
+    "across_splits": {
+      "testing_files_with_exact_copy_in_training": 0,
+      "shared_hashes": 0
+    }
+  },
+  "near": {
+    "hash_bits": 64,
+    "hashes": {
+      "dhash": "difference hash: 9x8 grayscale (INTER_AREA), horizontal neighbour compare",
+      "phash": "DCT hash: 32x32 grayscale, 8x8 lowest DCT frequencies vs their median"
+    },
+    "thresholds_bits": [
+      0,
+      2,
+      4,
+      8
+    ],
+    "pairs_by_hash_and_threshold": {
+      "within_Training": {
+        "dhash": {
+          "pairs_within_0_bits": 1224,
+          "pairs_within_2_bits": 3332,
+          "pairs_within_4_bits": 9325,
+          "pairs_within_8_bits": 121076
+        },
+        "phash": {
+          "pairs_within_0_bits": 1118,
+          "pairs_within_2_bits": 2307,
+          "pairs_within_4_bits": 3432,
+          "pairs_within_8_bits": 9211
+        }
+      },
+      "within_Testing": {
+        "dhash": {
+          "pairs_within_0_bits": 183,
+          "pairs_within_2_bits": 504,
+          "pairs_within_4_bits": 884,
+          "pairs_within_8_bits": 8239
+        },
+        "phash": {
+          "pairs_within_0_bits": 160,
+          "pairs_within_2_bits": 304,
+          "pairs_within_4_bits": 416,
+          "pairs_within_8_bits": 948
+        }
+      },
+      "across_splits": {
+        "dhash": {
+          "pairs_within_0_bits": 787,
+          "pairs_within_2_bits": 2214,
+          "pairs_within_4_bits": 4990,
+          "pairs_within_8_bits": 60736
+        },
+        "phash": {
+          "pairs_within_0_bits": 721,
+          "pairs_within_2_bits": 1423,
+          "pairs_within_4_bits": 2022,
+          "pairs_within_8_bits": 4760
+        }
+      }
+    },
+    "candidate_rule": "dHash and pHash both within 4 bits",
+    "candidate_max_bits": 4,
+    "candidates": {
+      "within_Training": {
+        "candidate_pairs": 2620,
+        "pairs_with_different_classes": 0,
+        "pairs_that_are_exact_copies": 210,
+        "candidate_groups": 493,
+        "images_in_candidate_groups": 1570
+      },
+      "within_Testing": {
+        "candidate_pairs": 354,
+        "pairs_with_different_classes": 4,
+        "pairs_that_are_exact_copies": 17,
+        "candidate_groups": 134,
+        "images_in_candidate_groups": 355
+      },
+      "across_splits": {
+        "candidate_pairs": 1658,
+        "pairs_with_different_classes": 4,
+        "pairs_that_are_exact_copies": 0,
+        "testing_images_with_candidate_in_training": 542,
+        "training_images_involved": 869
+      }
+    }
+  }
+}

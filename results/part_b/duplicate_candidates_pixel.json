@@ -1,0 +1,46 @@
+{
+  "image_size": 128,
+  "measures": "Pearson r and mean absolute difference (0-255) of the two grayscale images",
+  "r_thresholds": [
+    0.99,
+    0.95,
+    0.9,
+    0.8
+  ],
+  "within_Training": {
+    "pairs": 2620,
+    "pearson_r_min": 0.6685,
+    "pearson_r_median": 0.995,
+    "pairs_r_at_least_0.99": 1574,
+    "pairs_r_at_least_0.95": 2256,
+    "pairs_r_at_least_0.90": 2474,
+    "pairs_r_below_0.80": 20,
+    "mean_abs_diff_median": 4.81,
+    "mean_abs_diff_max": 54.07
+  },
+  "within_Testing": {
+    "pairs": 354,
+    "pearson_r_min": 0.8202,
+    "pearson_r_median": 0.9961,
+    "pairs_r_at_least_0.99": 249,
+    "pairs_r_at_least_0.95": 339,
+    "pairs_r_at_least_0.90": 350,
+    "pairs_r_below_0.80": 0,
+    "mean_abs_diff_median": 4.58,
+    "mean_abs_diff_max": 53.6
+  },
+  "across_splits": {
+    "pairs": 1658,
+    "pearson_r_min": 0.7649,
+    "pearson_r_median": 0.9956,
+    "pairs_r_at_least_0.99": 1094,
+    "pairs_r_at_least_0.95": 1504,
+    "pairs_r_at_least_0.90": 1602,
+    "pairs_r_below_0.80": 5,
+    "mean_abs_diff_median": 6.45,
+    "mean_abs_diff_max": 54.08
+  },
+  "testing_images_with_training_pair_r_at_least_0.99": 431,
+  "testing_images_with_training_pair_r_at_least_0.95": 460,
+  "testing_images_with_training_pair_r_at_least_0.90": 504
+}
