@@ -10,11 +10,13 @@ from __future__ import annotations
 import multiprocessing as mp
 import os
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
 
 STRATEGIES = ("sequential", "map", "imap_unordered")
+THREAD_VARIABLES = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS")
 
 
 def start_method_from_env() -> str | None:
@@ -28,6 +30,31 @@ def available_cores() -> int:
     if hasattr(os, "sched_getaffinity"):
         return len(os.sched_getaffinity(0))
     return os.cpu_count() or 1
+
+
+@contextmanager
+def worker_thread_limit(threads: int | None) -> Iterator[None]:
+    """Set the BLAS/OpenMP thread variables that new worker processes inherit.
+
+    ``None`` changes nothing. With N workers each starting its own BLAS thread
+    pool, a machine is oversubscribed, and on Windows each OpenBLAS thread
+    reserves its own buffer, so 12 workers can run out of commit memory.
+    The variables are restored afterwards; libraries already loaded in the
+    parent process are not affected.
+    """
+    if threads is None:
+        yield
+        return
+    saved = {name: os.environ.get(name) for name in THREAD_VARIABLES}
+    os.environ.update({name: str(threads) for name in THREAD_VARIABLES})
+    try:
+        yield
+    finally:
+        for name, value in saved.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 def get_context(start_method: str | None = None) -> mp.context.BaseContext:
@@ -58,6 +85,7 @@ def run(
     processes: int | None = None,
     chunksize: int | None = None,
     start_method: str | None = None,
+    worker_threads: int | None = None,
 ) -> list[Any]:
     """Apply ``func`` to every item and return results in input order.
 
@@ -65,6 +93,8 @@ def run(
     "imap_unordered" (results arrive as they finish and are put back in input
     order). ``chunksize=None`` means the ``Pool.map`` default; for
     imap_unordered the same default is computed explicitly (its own default is 1).
+    ``worker_threads`` limits BLAS/OpenMP threads in each worker (see
+    ``worker_thread_limit``); ``None`` leaves them at the library default.
     """
     if strategy not in STRATEGIES:
         raise ValueError(f"strategy must be one of {STRATEGIES}, got {strategy!r}")
@@ -72,7 +102,7 @@ def run(
         return [func(item) for item in items]
     processes = processes or available_cores()
     ctx = get_context(start_method)
-    with ctx.Pool(processes=processes) as pool:
+    with worker_thread_limit(worker_threads), ctx.Pool(processes=processes) as pool:
         if strategy == "map":
             return pool.map(func, items, chunksize=chunksize)
         size = chunksize or auto_chunksize(len(items), processes)

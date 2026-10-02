@@ -244,12 +244,14 @@ def run_scaling(
     tag: str = "",
     task_name: str = "filters",
     resize: int | None = None,
+    worker_threads: int | None = None,
 ) -> dict[str, Any]:
     """Time the filter stage (6 filters per image, full arrays returned to the
     parent) sequentially and with Pool.map on 1..N processes.
 
     Repeats are interleaved (all configurations once, then again) so that
     slow drifts of the machine affect every configuration equally.
+    ``worker_threads`` limits BLAS/OpenMP threads in each pool worker.
     """
     started = utc_now()
     suffix = f"_{tag}" if tag else ""
@@ -302,6 +304,7 @@ def run_scaling(
                 processes=cfg["processes"],
                 chunksize=chunk,
                 start_method=start_method,
+                worker_threads=worker_threads,
             )
             if cfg["strategy"] == "sequential" and reference is None:
                 reference = result.results
@@ -374,6 +377,7 @@ def run_scaling(
         ),
         "largest_image_shape": list(max((im.shape for im in images), key=lambda sh: sh[0] * sh[1])),
         "process_counts": list(process_counts),
+        "worker_threads": worker_threads,
         "repeats": repeats,
         "timer": "time.perf_counter",
         "speedup_baseline": "mean of the sequential loop (no pool)",
