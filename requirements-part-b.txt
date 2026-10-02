@@ -1,0 +1,5 @@
+# Part B extra: the small CNN baseline (src/mri_pipeline/cnn.py), on top of requirements.txt.
+# The CPU build is enough. On Linux, add --extra-index-url https://download.pytorch.org/whl/cpu
+# to get the CPU wheel instead of the much larger CUDA one.
+-r requirements.txt
+torch==2.14.1

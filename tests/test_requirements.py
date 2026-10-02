@@ -16,7 +16,10 @@ IMPORT_TO_PACKAGE = {
     "sklearn": "scikit-learn",
     "pandas": "pandas",
     "matplotlib": "matplotlib",
+    "torch": "torch",
 }
+# Imported only by the Part B CNN baseline; listed in requirements-part-b.txt.
+PART_B_ONLY = {"torch"}
 
 
 def third_party_imports() -> set[str]:
@@ -47,9 +50,9 @@ def parse(text: str) -> dict[str, str | None]:
     return out
 
 
-def check(requirements_text: str) -> None:
+def check(requirements_text: str, modules: set[str] | None = None) -> None:
     reqs = parse(requirements_text)
-    for module in third_party_imports():
+    for module in third_party_imports() - PART_B_ONLY if modules is None else modules:
         package = IMPORT_TO_PACKAGE[module]
         assert package in reqs, f"{module} is imported but {package} is not listed"
         assert reqs[package], f"{package} is not pinned"
@@ -59,10 +62,19 @@ def test_requirements_cover_imports_and_are_pinned():
     check((ROOT / "requirements.txt").read_text(encoding="utf-8"))
 
 
+def test_part_b_requirements_cover_torch_and_are_pinned():
+    text = (ROOT / "requirements-part-b.txt").read_text(encoding="utf-8")
+    assert third_party_imports() >= PART_B_ONLY
+    check(text, PART_B_ONLY)
+    assert "-r requirements.txt" in text
+    assert "torch" not in parse((ROOT / "requirements.txt").read_text(encoding="utf-8"))
+
+
 def test_dev_requirements_pinned():
     reqs = parse((ROOT / "requirements-dev.txt").read_text(encoding="utf-8"))
     assert reqs and all(reqs.values())
     assert "-r requirements.txt" in (ROOT / "requirements-dev.txt").read_text()
+    assert "-r requirements-part-b.txt" in (ROOT / "requirements-dev.txt").read_text()
 
 
 def test_no_unused_heavy_dependencies():

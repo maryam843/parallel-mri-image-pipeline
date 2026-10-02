@@ -1,5 +1,6 @@
 # Tests, lint and notebook execution.
 -r requirements.txt
+-r requirements-part-b.txt
 pytest==9.1.1
 pytest-cov==7.1.0
 hypothesis==6.168.3
