@@ -28,11 +28,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements-dev.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-part-b.txt
+            requirements-dev.txt
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt
+          python -m pip install -r requirements-dev.txt --extra-index-url https://download.pytorch.org/whl/cpu
           python -m pip install -e . --no-deps
       - name: Lint and format
         run: |
@@ -76,11 +79,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements-dev.txt
+          cache-dependency-path: |
+            requirements.txt
+            requirements-part-b.txt
+            requirements-dev.txt
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-dev.txt
+          python -m pip install -r requirements-dev.txt --extra-index-url https://download.pytorch.org/whl/cpu
           python -m pip install -e . --no-deps
-      - name: Execute notebooks headless (walkthrough on synthetic images, Part B licence gate)
+      - name: Execute notebooks headless (walkthrough and Part B on synthetic images, licence gate)
         run: pytest tests/test_notebooks.py -v
