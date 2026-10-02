@@ -198,6 +198,11 @@ def main() -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     for make in (scaling_figure, profile_figure, ml_figure):
         print(make(args.results, args.out))
+    if (args.results / "part_b" / "run_info.json").exists():
+        from mri_pipeline.part_b_figures import make_all
+
+        for path in make_all(args.results / "part_b", args.out / "part_b"):
+            print(path)
 
 
 if __name__ == "__main__":
