@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests (${{ matrix.os }}, ${{ matrix.start-method }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        start-method: [default]
+        include:
+          - os: ubuntu-latest
+            start-method: spawn
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Lint and format
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Tests with coverage (default start method)
+        if: matrix.start-method == 'default'
+        run: pytest --cov --cov-report=term-missing --cov-fail-under=85
+      - name: Tests with the spawn start method forced
+        if: matrix.start-method == 'spawn'
+        env:
+          MRI_START_METHOD: spawn
+        run: pytest
+      - name: CLI smoke test on synthetic data
+        shell: bash
+        run: |
+          python -m mri_pipeline --help
+          python -m mri_pipeline make-synthetic --out ci_data --per-class 6
+          python -m mri_pipeline run-scaling --data-dir ci_data --out-dir ci_results --images 6 --processes 1 2 --repeats 1
+          python -m mri_pipeline run-ml --fast --data-dir ci_data --out-dir ci_results --seeds 0 --folds 3
+      - name: README numbers match results/
+        run: python scripts/check_readme_claims.py
+
+  pii-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Secret and personal-data scan of the full history
+        run: python scripts/pii_scan.py --history
+
+  notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install -e . --no-deps
+      - name: Execute notebooks headless (walkthrough on synthetic images, Part B licence gate)
+        run: pytest tests/test_notebooks.py -v
