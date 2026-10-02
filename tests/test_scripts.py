@@ -147,3 +147,60 @@ def test_claims_detect_empty_table_block(tmp_path: Path, results_copy: Path):
     assert any("table ml" in p for p in claims.check(readme, results_copy))
     assert tables.update(readme, results_copy) == ["ml"]
     assert claims.check(readme, results_copy) == []
+
+
+def test_claims_cover_part_b_numbers_and_tables(tmp_path: Path, results_copy: Path):
+    part_b = results_copy / "part_b"
+    shutil.rmtree(part_b, ignore_errors=True)
+    part_b.mkdir()
+    counts = {
+        "found": {"Training": {"a": 1400}, "Testing": {"a": 400}},
+        "expected": {"Training": {"a": 1400}, "Testing": {"a": 400}},
+        "total_found": 1800,
+        "total_expected": 1800,
+        "differences": [],
+    }
+    (part_b / "dataset_counts.json").write_text(json.dumps(counts), encoding="utf-8")
+    (part_b / "cnn_history.csv").write_text("seed,epoch,train_loss\n0,1,0.4321\n", "utf-8")
+    from mri_pipeline.report import part_b_counts_table
+
+    table = part_b_counts_table(part_b)
+    readme = tmp_path / "README.md"
+    readme.write_text(
+        f"Part B found 1800 images.\n\n<!-- BEGIN:part_b_counts -->\n{table}\n"
+        "<!-- END:part_b_counts -->\n",
+        encoding="utf-8",
+    )
+    assert claims.check(readme, results_copy) == []
+    readme.write_text("Part B found 1801 images, loss 0.4321.\n", encoding="utf-8")
+    problems = claims.check(readme, results_copy)
+    assert len(problems) == 2  # a wrong count, and a number only in a per-epoch file
+    readme.write_text(
+        "<!-- BEGIN:part_b_counts -->\n| old |\n<!-- END:part_b_counts -->\n", "utf-8"
+    )
+    assert any("table part_b_counts" in p for p in claims.check(readme, results_copy))
+
+
+def test_check_duplicate_candidates_script(tmp_path: Path, monkeypatch):
+    from mri_pipeline import part_b
+    from mri_pipeline.synthetic import make_split_dataset
+
+    script = load("check_duplicate_candidates")
+    make_split_dataset(tmp_path / "data", per_class={"Training": 3, "Testing": 1})
+    records = part_b.list_split_records(tmp_path / "data")
+    hashes = {s: [part_b.image_hashes(r.path) for r in records[s]] for s in part_b.SPLITS}
+    _, candidates = part_b.near_duplicates(records, hashes)
+    out = tmp_path / "results"
+    out.mkdir()
+    from mri_pipeline.experiments import write_csv
+    from mri_pipeline.report import read_csv as read_csv_rows
+
+    write_csv(out / "duplicate_candidates.csv", candidates)
+    monkeypatch.delenv(part_b.DATA_ENV, raising=False)
+    assert script.main(["--results", str(out)]) == 1
+    monkeypatch.setenv(part_b.DATA_ENV, str(tmp_path / "data"))
+    assert script.main(["--results", str(out), "--size", "32"]) == 0
+    summary = json.loads((out / "duplicate_candidates_pixel.json").read_text(encoding="utf-8"))
+    assert summary["image_size"] == 32
+    rows = read_csv_rows(out / "duplicate_candidates_pixel.csv")
+    assert len(rows) == len(candidates)

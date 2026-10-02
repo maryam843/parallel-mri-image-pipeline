@@ -32,10 +32,52 @@ def test_walkthrough_runs_headless(monkeypatch):
 
 
 @pytest.mark.slow
-def test_part_b_stops_at_licence_gate():
-    """Part B is prepared, not run: its first code cell must stop execution."""
+def test_part_b_stops_at_licence_gate(monkeypatch):
+    """Without the licence confirmation the first code cell stops execution."""
+    monkeypatch.delenv("MRI_PART_B_LICENCE", raising=False)
     with pytest.raises(CellExecutionError, match="licence not confirmed"):
         execute(NB / "part_b_larger_dataset_colab.ipynb")
+
+
+@pytest.mark.slow
+def test_part_b_gate_stays_closed_for_a_wrong_value(monkeypatch):
+    monkeypatch.setenv("MRI_PART_B_LICENCE", "yes")
+    with pytest.raises(CellExecutionError, match="licence not confirmed"):
+        execute(NB / "part_b_larger_dataset_colab.ipynb")
+
+
+@pytest.mark.slow
+def test_part_b_runs_outside_colab_on_synthetic_data(monkeypatch, tmp_path):
+    """Whole notebook, tiny settings, synthetic 4-class data: every output file is written."""
+    pytest.importorskip("torch")
+    from mri_pipeline.synthetic import make_split_dataset
+
+    make_split_dataset(tmp_path / "data", per_class={"Training": 5, "Testing": 2})
+    monkeypatch.setenv("MRI_PART_B_LICENCE", "CC-BY-4.0")
+    monkeypatch.setenv("MRI_PART_B_DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("MRI_PART_B_OUT", str(tmp_path / "out"))
+    monkeypatch.setenv("MRI_PART_B_QUICK", "1")
+    nb = execute(NB / "part_b_larger_dataset_colab.ipynb")
+    text = json.dumps([c.get("outputs", []) for c in nb.cells])
+    assert "running outside Colab" in text
+    assert "Not on Colab: using the mri_pipeline installed" in text
+    assert "parallel outputs identical to sequential: True" in text
+    assert str(tmp_path) not in text  # no local path in the outputs
+    results = tmp_path / "out" / "results" / "part_b"
+    for name in (
+        "dataset_counts.json", "duplicates.json", "duplicate_candidates.csv", "image_sizes.json",
+        "scaling_summary.csv", "per_class_runs.csv", "per_class_summary.csv",
+        "confusion_matrices.json", "cnn_history.csv", "run_info.json",
+    ):  # fmt: skip
+        assert (results / name).is_file(), name
+    info = json.loads((results / "run_info.json").read_text(encoding="utf-8"))
+    assert info["settings"]["quick_test_settings"] is True
+    assert info["test_images"]["test_without_flagged"] < info["test_images"]["test_as_provided"]
+    figures = sorted(p.name for p in (tmp_path / "out" / "figures" / "part_b").iterdir())
+    assert figures == [
+        "cnn_training_loss.png", "confusion_matrices.png", "per_class_f1.png",
+        "scaling_speedup.png",
+    ]  # fmt: skip
 
 
 def test_part_b_never_writes_credentials():
@@ -62,8 +104,8 @@ def install_cell_source() -> str:
 
 
 def load_install_cell() -> dict:
-    """Execute the cell's definitions only (not the final install call)."""
-    src = install_cell_source().replace("print(install_mri_pipeline())", "")
+    """Execute the cell's definitions only (not the final Colab-only install call)."""
+    src = install_cell_source().split("\nif IN_COLAB:")[0]
     namespace: dict = {"__name__": "install_cell"}
     exec(compile(src, "install_cell", "exec"), namespace)
     return namespace
@@ -74,6 +116,16 @@ def test_part_b_licence_gate_is_still_the_first_code_cell():
     first_code = next(c for c in nb.cells if c.cell_type == "code")
     assert "LICENCE_CONFIRMED = False" in first_code.source
     assert "raise SystemExit" in first_code.source
+    assert "CC BY 4.0" in first_code.source
+    assert '"MRI_PART_B_LICENCE"' in first_code.source
+
+
+def test_part_b_colab_only_steps_are_guarded():
+    src = install_cell_source()
+    assert "if IN_COLAB:\n    print(install_mri_pipeline())" in src
+    nb = nbformat.read(NB / "part_b_larger_dataset_colab.ipynb", as_version=4)
+    colab = [c.source for c in nb.cells if "kagglehub" in c.source or "!pip" in c.source]
+    assert colab and all("IN_COLAB" in s for s in colab)
 
 
 def test_part_b_install_cell_has_no_credentials():
