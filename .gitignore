@@ -26,3 +26,11 @@ dist/
 *.pdf
 kaggle.json
 .env
+# Part B: never commit images, archives, model weights or checkpoints
+*.zip
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.jpg
+*.jpeg
