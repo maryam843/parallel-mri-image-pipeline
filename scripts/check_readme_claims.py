@@ -3,7 +3,8 @@
     python scripts/check_readme_claims.py [--readme README.md] [--results results]
 
 1. Every block between <!-- BEGIN:name --> and <!-- END:name --> must equal
-   the table that mri_pipeline.report renders from results/ right now.
+   the table that mri_pipeline.report renders from results/ right now
+   (Part A from results/, Part B from results/part_b/).
 2. Every other number in the README prose (outside code blocks, links and those
    blocks) must either match a value in results/ at the precision written, or
    be a structural number listed in STRUCTURAL below with its reason.
@@ -59,6 +60,8 @@ STRUCTURAL = {  # fmt: skip
     "56": "direct-cast example output (256 - 200)",
     "3.7": "direct-cast example entropy value",
     "175": "direct-cast example output (943 mod 256)",
+    # Part B: dataset credits, not measured results.
+    "4.0": "licence version, CC BY 4.0",
 }
 FORBIDDEN = [
     r"state[ -]of[ -]the[ -]art",
@@ -66,6 +69,13 @@ FORBIDDEN = [
     r"clinical[- ]grade",
     r"diagnos(?:es|ing) (?:brain )?tumou?rs",
 ]
+# Per-fold or per-pair files: prose may not quote single rows from them.
+SKIPPED_CSV = {
+    "ml_cv_folds.csv",
+    "duplicate_candidates.csv",
+    "duplicate_candidates_pixel.csv",
+    "cnn_history.csv",
+}
 # A number, optionally followed by "x" (speedups), not part of a word or a longer number.
 NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?=x?(?:[^\w.]|\.(?!\d)|$))")
 
@@ -100,10 +110,11 @@ def result_values(results: Path) -> set[float]:
             with contextlib.suppress(ValueError):
                 add(float(v))
 
-    for path in sorted(results.glob("*.json")):
+    folders = [results, results / "part_b"]
+    for path in sorted(p for folder in folders for p in folder.glob("*.json")):
         add(json.loads(path.read_text(encoding="utf-8")))
-    for path in sorted(results.glob("*.csv")):
-        if path.name.endswith("_runs.csv") or path.name == "ml_cv_folds.csv":
+    for path in sorted(p for folder in folders for p in folder.glob("*.csv")):
+        if path.name.endswith("_runs.csv") or path.name in SKIPPED_CSV:
             continue  # prose may only quote summaries
         with open(path, newline="", encoding="utf-8") as handle:
             for row in csv.DictReader(handle):
