@@ -18,6 +18,17 @@ I take brain MRI images through six image filters and a texture-feature step, ru
 
 > Demo video: **placeholder**, to be recorded by me later (under 10 MB). Until then, the walkthrough notebook `notebooks/walkthrough.ipynb` shows every step.
 
+## Key results
+
+| Result | Numbers | Source |
+|---|---|---|
+| Part A speedup (4-vCPU cloud VM, fast mode, 40 images, 4 processes) | 2.34x with native image sizes, 3.24x with images resized to 256x256 | `results/scaling_summary.csv`, `results/scaling_summary_resized_256.csv` |
+| Parallel = sequential | identical outputs for every filter in every configuration, Part A and Part B | `results/parallel_equivalence*.json`, `results/part_b/parallel_equivalence.json` |
+| GLCM vs raw pixels (Part A, grouped 5-fold CV x 3 seeds) | GLCM + random forest 0.752 vs raw pixels + SVM 0.803 accuracy | `results/ml_cv_summary.csv` |
+| Part B leakage | 542 of 1,600 Testing images have a near-duplicate candidate in Training; no-tumour 358 of 400 | `results/part_b/leakage_by_class.json` |
+| Part B accuracy (3 seeds) | provided split: GLCM + random forest 0.872, small CNN 0.833; without flagged images: 0.815 and 0.789 (different class mix) | `results/part_b/per_class_summary.csv` |
+| Part B speedup (6-core laptop, 200 images at 256x256) | 4.69x at 10 processes, 3.48x at 6 | `results/part_b/scaling_summary.csv` |
+
 ## The problem
 
 The course gave six scikit-image filters (entropy, Gaussian, Sobel, Gabor, Hessian, Prewitt) to apply to every MRI image, followed by GLCM texture features and three classifiers. With the course setting for the Hessian filter (sigmas 1-99), one image at a time takes about 35 s per image in my profile, so the whole dataset takes over an hour. The task was to make it faster with parallel processing and still get a working classifier.
