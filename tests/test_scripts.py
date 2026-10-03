@@ -226,3 +226,30 @@ def test_run_part_b_scaling_script(tmp_path: Path, monkeypatch):
     assert {"memory_at_start", "benchmark_seconds"} <= set(env)
     assert (tmp_path / "fig" / "scaling_speedup.png").is_file()
     assert (tmp_path / "res" / "scaling_summary.csv").is_file()
+
+
+def test_part_b_leakage_by_class_script(tmp_path: Path):
+    from mri_pipeline.experiments import write_csv, write_json
+
+    script = load("part_b_leakage_by_class")
+    write_json(tmp_path / "dataset_counts.json", {"found": {"Testing": {"a": 2, "b": 2}}})
+    rows = [
+        {"scope": "across_splits", "class_a": "a", "file_a": "x.jpg", "pearson_r": 0.999},
+        {"scope": "within_Training", "class_a": "b", "file_a": "y.jpg", "pearson_r": 0.5},
+    ]
+    write_csv(tmp_path / "duplicate_candidates.csv", rows)
+    near = {
+        "near": {"candidates": {"across_splits": {"testing_images_with_candidate_in_training": 1}}}
+    }
+    write_json(tmp_path / "duplicates.json", near)
+    assert script.main(["--results", str(tmp_path)]) == 0
+    out = json.loads((tmp_path / "leakage_by_class.json").read_text(encoding="utf-8"))
+    assert out["total_with_candidate_in_training"] == 1
+    assert "pixel_r_min" not in out  # no pixel file: no pixel column
+    write_csv(tmp_path / "duplicate_candidates_pixel.csv", rows)
+    assert script.main(["--results", str(tmp_path)]) == 0
+    out = json.loads((tmp_path / "leakage_by_class.json").read_text(encoding="utf-8"))
+    assert out["total_with_training_pair_r_at_least_0.99"] == 1
+    near["near"]["candidates"]["across_splits"]["testing_images_with_candidate_in_training"] = 5
+    write_json(tmp_path / "duplicates.json", near)
+    assert script.main(["--results", str(tmp_path)]) == 1  # disagrees with the duplicate check

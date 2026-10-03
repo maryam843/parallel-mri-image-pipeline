@@ -1,0 +1,38 @@
+{
+  "candidate_rule": "dHash and pHash both within 4 bits (results/part_b/duplicates.json)",
+  "per_class": [
+    {
+      "class": "glioma",
+      "testing_images": 400,
+      "with_candidate_in_training": 27,
+      "share": 0.0675,
+      "with_training_pair_r_at_least_0.99": 7
+    },
+    {
+      "class": "meningioma",
+      "testing_images": 400,
+      "with_candidate_in_training": 125,
+      "share": 0.3125,
+      "with_training_pair_r_at_least_0.99": 103
+    },
+    {
+      "class": "notumor",
+      "testing_images": 400,
+      "with_candidate_in_training": 358,
+      "share": 0.895,
+      "with_training_pair_r_at_least_0.99": 321
+    },
+    {
+      "class": "pituitary",
+      "testing_images": 400,
+      "with_candidate_in_training": 32,
+      "share": 0.08,
+      "with_training_pair_r_at_least_0.99": 0
+    }
+  ],
+  "total_testing_images": 1600,
+  "total_with_candidate_in_training": 542,
+  "total_share": 0.3387,
+  "pixel_r_min": 0.99,
+  "total_with_training_pair_r_at_least_0.99": 431
+}

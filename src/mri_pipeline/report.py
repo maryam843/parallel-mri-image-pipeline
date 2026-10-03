@@ -336,9 +336,39 @@ def part_b_times_table(part_b: Path) -> str:
     return "\n".join(out)
 
 
+def part_b_leakage_table(part_b: Path) -> str:
+    data = _json(part_b / "leakage_by_class.json")
+    r_key = f"with_training_pair_r_at_least_{data.get('pixel_r_min', 0.99):.2f}"
+    has_r = all(r_key in row for row in data["per_class"])
+    out = [
+        "Testing images with a cross-split near-duplicate candidate, per class "
+        "(`results/part_b/leakage_by_class.json`)",
+        "",
+        "| Class | Testing images | With a candidate in Training | Share |"
+        + (" Of those, pixel r >= 0.99 |" if has_r else ""),
+        "|---|---:|---:|---:|" + ("---:|" if has_r else ""),
+    ]
+    for row in data["per_class"] + [
+        {
+            "class": "**all**",
+            "testing_images": data["total_testing_images"],
+            "with_candidate_in_training": data["total_with_candidate_in_training"],
+            "share": data["total_share"],
+            r_key: data.get(f"total_{r_key}"),
+        }
+    ]:
+        line = (
+            f"| {row['class']} | {row['testing_images']} | {row['with_candidate_in_training']} | "
+            f"{_f(row['share'], 3)} |"
+        )
+        out.append(line + (f" {row[r_key]} |" if has_r else ""))
+    return "\n".join(out)
+
+
 PART_B_TABLES = {
     "part_b_counts": part_b_counts_table,
     "part_b_duplicates": part_b_duplicates_table,
+    "part_b_leakage": part_b_leakage_table,
     "part_b_scaling": lambda p: scaling_table(p, where="results/part_b"),
     "part_b_models": part_b_models_table,
     "part_b_per_class": part_b_per_class_table,

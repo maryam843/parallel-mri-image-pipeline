@@ -530,3 +530,55 @@ def check_candidates(
         files = {f"{r['class_a']}/{r['file_a']}" for r in across if r["pearson_r"] >= t}
         summary[f"testing_images_with_training_pair_r_at_least_{t:.2f}"] = len(files)
     return summary, rows
+
+
+# -------------------------------------------------------- leakage per class
+
+
+def leakage_by_class(
+    counts: Mapping[str, Any],
+    candidates: Sequence[Mapping[str, Any]],
+    pixel_rows: Sequence[Mapping[str, Any]] | None = None,
+    r_min: float = 0.99,
+) -> dict[str, Any]:
+    """Per class: Testing images, those with a cross-split near-duplicate
+    candidate in Training, and their share. With the pixel check rows, also
+    those whose Training partner has a pixel correlation of at least ``r_min``.
+
+    Built only from files the duplicate check already wrote; nothing is re-run.
+    """
+    testing = counts["found"]["Testing"]
+    flagged: dict[str, set[str]] = {c: set() for c in testing}
+    for c in candidates:
+        if c["scope"] == "across_splits":
+            flagged[c["class_a"]].add(c["file_a"])
+    close: dict[str, set[str]] = {c: set() for c in testing}
+    for r in pixel_rows or []:
+        if r["scope"] == "across_splits" and float(r["pearson_r"]) >= r_min:
+            close[r["class_a"]].add(r["file_a"])
+    rows = []
+    for name, n in testing.items():
+        row: dict[str, Any] = {
+            "class": name,
+            "testing_images": int(n),
+            "with_candidate_in_training": len(flagged[name]),
+            "share": round(len(flagged[name]) / n, 4) if n else 0.0,
+        }
+        if pixel_rows is not None:
+            row[f"with_training_pair_r_at_least_{r_min:.2f}"] = len(close[name])
+        rows.append(row)
+    total = sum(r["testing_images"] for r in rows)
+    total_flagged = sum(r["with_candidate_in_training"] for r in rows)
+    out: dict[str, Any] = {
+        "candidate_rule": "dHash and pHash both within 4 bits (results/part_b/duplicates.json)",
+        "per_class": rows,
+        "total_testing_images": total,
+        "total_with_candidate_in_training": total_flagged,
+        "total_share": round(total_flagged / total, 4) if total else 0.0,
+    }
+    if pixel_rows is not None:
+        out["pixel_r_min"] = r_min
+        out[f"total_with_training_pair_r_at_least_{r_min:.2f}"] = sum(
+            len(v) for v in close.values()
+        )
+    return out

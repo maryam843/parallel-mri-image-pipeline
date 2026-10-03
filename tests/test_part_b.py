@@ -328,3 +328,37 @@ def test_top_memory_processes_groups_by_name_without_paths():
     live = part_b.top_memory_processes(3)
     assert len(live) <= 3
     assert all("/" not in p["name"] and "\\" not in p["name"] for p in live)
+
+
+def test_leakage_by_class_counts_each_testing_file_once():
+    counts = {"found": {"Testing": {"a": 4, "b": 2}}}
+    candidates = [
+        {"scope": "across_splits", "class_a": "a", "file_a": "1.jpg"},
+        {"scope": "across_splits", "class_a": "a", "file_a": "1.jpg"},  # second partner
+        {"scope": "across_splits", "class_a": "b", "file_a": "9.jpg"},
+        {"scope": "within_Testing", "class_a": "a", "file_a": "2.jpg"},  # not cross-split
+    ]
+    pixel = [
+        {"scope": "across_splits", "class_a": "a", "file_a": "1.jpg", "pearson_r": "0.995"},
+        {"scope": "across_splits", "class_a": "b", "file_a": "9.jpg", "pearson_r": "0.9"},
+    ]
+    out = part_b.leakage_by_class(counts, candidates, pixel)
+    a, b = out["per_class"]
+    assert (a["testing_images"], a["with_candidate_in_training"], a["share"]) == (4, 1, 0.25)
+    assert (b["with_candidate_in_training"], b["share"]) == (1, 0.5)
+    assert a["with_training_pair_r_at_least_0.99"] == 1
+    assert b["with_training_pair_r_at_least_0.99"] == 0
+    assert (out["total_testing_images"], out["total_with_candidate_in_training"]) == (6, 2)
+    assert out["total_with_training_pair_r_at_least_0.99"] == 1
+    plain = part_b.leakage_by_class(counts, candidates)
+    assert "with_training_pair_r_at_least_0.99" not in plain["per_class"][0]
+
+
+def test_leakage_table_renders(tmp_path: Path):
+    counts = {"found": {"Testing": {"a": 4}}}
+    rows = [{"scope": "across_splits", "class_a": "a", "file_a": "1.jpg", "pearson_r": "1.0"}]
+    data = part_b.leakage_by_class(counts, rows, rows)
+    (tmp_path / "leakage_by_class.json").write_text(json.dumps(data), encoding="utf-8")
+    table = report.part_b_leakage_table(tmp_path)
+    assert "| a | 4 | 1 | 0.250 | 1 |" in table
+    assert "| **all** | 4 | 1 | 0.250 | 1 |" in table
