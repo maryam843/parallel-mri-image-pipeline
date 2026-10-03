@@ -315,3 +315,16 @@ def test_pixel_similarity_of_flat_images(tmp_path: Path):
     assert part_b.pixel_similarity(tmp_path / "a.png", tmp_path / "b.png", 8)["pearson_r"] == 1.0
     other = part_b.pixel_similarity(tmp_path / "a.png", tmp_path / "c.png", 8)
     assert other == {"pearson_r": 0.0, "mean_abs_diff": 1.0}
+
+
+def test_top_memory_processes_groups_by_name_without_paths():
+    table = [("chrome", 3 * 2**20), ("/usr/bin/chrome", 2**20), ("python", 2 * 2**20)]
+    top = part_b.top_memory_processes(5, table)
+    assert top == [
+        {"name": "chrome", "processes": 2, "memory_mb": 4},
+        {"name": "python", "processes": 1, "memory_mb": 2},
+    ]
+    assert part_b.top_memory_processes(1, table) == top[:1]
+    live = part_b.top_memory_processes(3)
+    assert len(live) <= 3
+    assert all("/" not in p["name"] and "\\" not in p["name"] for p in live)
