@@ -1,4 +1,4 @@
-"""Rewrite the generated tables in README.md from results/.
+"""Rewrite the generated tables in README.md and docs/RESULTS.md from results/.
 
     python scripts/update_readme_tables.py
 
@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 
 from mri_pipeline.report import render_all
+
+DOCUMENTS = (Path("README.md"), Path("docs") / "RESULTS.md")
 
 
 def update(readme: Path, results: Path) -> list[str]:
@@ -33,6 +35,8 @@ def update(readme: Path, results: Path) -> list[str]:
 
 
 if __name__ == "__main__":
-    names = update(Path("README.md"), Path("results"))
-    print("updated tables:", ", ".join(names))
+    for document in DOCUMENTS:
+        if document.exists():
+            names = update(document, Path("results"))
+            print(f"{document}: updated tables:", ", ".join(names))
     sys.exit(0)

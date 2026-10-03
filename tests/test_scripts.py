@@ -263,3 +263,16 @@ def test_claims_read_thousands_separators(tmp_path: Path, results_copy: Path):
     readme.write_text("It found 1,253 images.\n", encoding="utf-8")
     problems = claims.check(readme, results_copy)
     assert len(problems) == 1 and "'1253'" in problems[0]
+
+
+def test_claims_main_checks_every_document(tmp_path: Path, results_copy: Path, capsys):
+    good = tmp_path / "README.md"
+    good.write_text("It found 253 images.\n", encoding="utf-8")
+    bad = tmp_path / "RESULTS.md"
+    bad.write_text("It found 98765 images.\n", encoding="utf-8")
+    args = ["--results", str(results_copy), "--readme", str(good)]
+    assert claims.main(args) == 0
+    assert claims.main([*args, "--readme", str(bad)]) == 1
+    out = capsys.readouterr().out
+    assert f"{bad}: prose number '98765'" in out
+    assert claims.DOCUMENTS == tables.DOCUMENTS

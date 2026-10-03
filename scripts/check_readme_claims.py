@@ -1,6 +1,8 @@
-"""Check that every number in README.md comes from results/.
+"""Check that every number in README.md and docs/RESULTS.md comes from results/.
 
-    python scripts/check_readme_claims.py [--readme README.md] [--results results]
+    python scripts/check_readme_claims.py [--readme README.md ...] [--results results]
+
+Both documents are checked by default; the rules apply to each one.
 
 1. Every block between <!-- BEGIN:name --> and <!-- END:name --> must equal
    the table that mri_pipeline.report renders from results/ right now
@@ -162,12 +164,23 @@ def check(readme: Path, results: Path) -> list[str]:
     return problems
 
 
+DOCUMENTS = (Path("README.md"), Path("docs") / "RESULTS.md")
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="README numbers vs results/")
-    parser.add_argument("--readme", type=Path, default=Path("README.md"))
+    parser = argparse.ArgumentParser(description="README and docs/RESULTS.md numbers vs results/")
+    parser.add_argument(
+        "--readme",
+        type=Path,
+        action="append",
+        help="document to check (repeatable; default: README.md and docs/RESULTS.md)",
+    )
     parser.add_argument("--results", type=Path, default=Path("results"))
     args = parser.parse_args(argv)
-    problems = check(args.readme, args.results)
+    documents = args.readme or [d for d in DOCUMENTS if d.exists()]
+    problems = []
+    for document in documents:
+        problems += [f"{document}: {p}" for p in check(document, args.results)]
     for p in problems:
         print(p)
     print(f"check_readme_claims: {len(problems)} problem(s)")
