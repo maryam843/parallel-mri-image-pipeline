@@ -253,3 +253,13 @@ def test_part_b_leakage_by_class_script(tmp_path: Path):
     near["near"]["candidates"]["across_splits"]["testing_images_with_candidate_in_training"] = 5
     write_json(tmp_path / "duplicates.json", near)
     assert script.main(["--results", str(tmp_path)]) == 1  # disagrees with the duplicate check
+
+
+def test_claims_read_thousands_separators(tmp_path: Path, results_copy: Path):
+    readme = tmp_path / "README.md"
+    readme.write_text("It found 253 images; steps 1, 2 and 3.\n", encoding="utf-8")
+    assert claims.check(readme, results_copy) == []
+    assert claims.NUMBER.findall("of 1,600 images, 1, 2 and 3,") == ["1,600", "1", "2", "3"]
+    readme.write_text("It found 1,253 images.\n", encoding="utf-8")
+    problems = claims.check(readme, results_copy)
+    assert len(problems) == 1 and "'1253'" in problems[0]

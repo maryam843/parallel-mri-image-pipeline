@@ -77,7 +77,10 @@ SKIPPED_CSV = {
     "cnn_history.csv",
 }
 # A number, optionally followed by "x" (speedups), not part of a word or a longer number.
-NUMBER = re.compile(r"(?<![\w.])(\d+(?:\.\d+)?)(?=x?(?:[^\w.]|\.(?!\d)|$))")
+# "1,600" is read as one number (thousands separator); "1, 2" stays two numbers.
+NUMBER = re.compile(
+    r"(?<![\w.,])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?=x?(?:[^\w.,]|[.,](?!\d)|$))"
+)
 
 
 def strip_non_prose(text: str) -> str:
@@ -147,6 +150,7 @@ def check(readme: Path, results: Path) -> list[str]:
     values = result_values(results)
     for line in strip_non_prose(text).splitlines():
         for token in NUMBER.findall(line):
+            token = token.replace(",", "")
             if token in STRUCTURAL or matches(token, values):
                 continue
             problems.append(f"prose number {token!r} not found in results/: ...{line.strip()[:90]}")
