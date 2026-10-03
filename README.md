@@ -68,7 +68,7 @@ Sequential pipeline, 5 images, full mode, cProfile cumulative time (`results/pro
 | Gabor | 0.03 | 0.01 | 0.0 % |
 | Hessian | 171.73 | 34.35 | 99.1 % |
 | Prewitt | 0.02 | 0.00 | 0.0 % |
-| GLCM (7 images x 24 features) | 1.27 | 0.25 | 0.7 % |
+| GLCM (7 filtered images x 24 features per image) | 1.27 | 0.25 | 0.7 % |
 | Other (loop, dict building, profiler overhead) | 0.00 | 0.00 | 0.0 % |
 | **Total** | 173.33 | 34.67 | 100.0 % |
 <!-- END:profile_full -->
@@ -84,7 +84,7 @@ Sequential pipeline, 5 images, fast mode, cProfile cumulative time (`results/pro
 | Gabor | 0.03 | 0.01 | 0.6 % |
 | Hessian | 2.37 | 0.47 | 57.0 % |
 | Prewitt | 0.01 | 0.00 | 0.4 % |
-| GLCM (7 images x 24 features) | 1.46 | 0.29 | 35.2 % |
+| GLCM (7 filtered images x 24 features per image) | 1.46 | 0.29 | 35.2 % |
 | Other (loop, dict building, profiler overhead) | 0.00 | 0.00 | 0.0 % |
 | **Total** | 4.15 | 0.83 | 100.0 % |
 <!-- END:profile_fast -->

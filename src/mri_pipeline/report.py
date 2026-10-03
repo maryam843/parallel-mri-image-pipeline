@@ -20,6 +20,12 @@ def _f(value: str | float, digits: int) -> str:
     return f"{float(value):.{digits}f}"
 
 
+# Stage names as written by earlier runs, shown with the current wording.
+STAGE_LABELS = {
+    "GLCM (7 images x 24 features)": "GLCM (7 filtered images x 24 features per image)",
+}
+
+
 def profile_table(results: Path, mode: str) -> str:
     rows = read_csv(results / f"profile_{mode}.csv")
     meta = json.loads((results / f"profile_{mode}_meta.json").read_text(encoding="utf-8"))
@@ -31,7 +37,8 @@ def profile_table(results: Path, mode: str) -> str:
         "|---|---:|---:|---:|",
     ]
     for r in rows:
-        name = f"**{r['stage']}**" if r["stage"] == "Total" else r["stage"]
+        stage = STAGE_LABELS.get(r["stage"], r["stage"])
+        name = f"**{stage}**" if stage == "Total" else stage
         out.append(
             f"| {name} | {_f(r['total_s'], 2)} | {_f(r['per_image_s'], 2)} | "
             f"{_f(r['share_pct'], 1)} % |"

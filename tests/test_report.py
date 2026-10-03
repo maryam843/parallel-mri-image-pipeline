@@ -51,3 +51,13 @@ def test_scaling_table_repeated_runs_keep_mean_sd(tmp_path):
     assert "| Sequential loop (no pool) | 1 | 10.00 +/- 0.50 | 1.00x | 1.00 |" in table
     assert "| Pool.map | 2 | 5.50 +/- 0.25 | 1.82x +/- 0.04 | 0.91 |" in table
     assert "(1 run)" not in table
+
+
+def test_profile_table_shows_the_current_glcm_label(tmp_path: Path):
+    header = "stage,total_s,per_image_s,share_pct\n"
+    rows = "GLCM (7 images x 24 features),1.0,0.2,50.0\nTotal,2.0,0.4,100.0\n"
+    (tmp_path / "profile_fast.csv").write_text(header + rows, encoding="utf-8")
+    (tmp_path / "profile_fast_meta.json").write_text('{"n_images": 5}', encoding="utf-8")
+    table = report.profile_table(tmp_path, "fast")
+    assert "| GLCM (7 filtered images x 24 features per image) | 1.00 | 0.20 | 50.0 % |" in table
+    assert "| **Total** |" in table

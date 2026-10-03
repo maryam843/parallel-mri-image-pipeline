@@ -119,7 +119,7 @@ def profile_figure(results: Path, out: Path) -> Path:
     for ax, mode in zip(axes, ("full", "fast"), strict=True):
         rows = [r for r in read_csv(results / f"profile_{mode}.csv") if r["stage"] != "Total"]
         rows = [r for r in rows if not r["stage"].startswith("Other")]
-        names = [r["stage"].replace(" (7 images x 24 features)", "") for r in rows][::-1]
+        names = [r["stage"].split(" (")[0] for r in rows][::-1]
         share = [float(r["share_pct"]) for r in rows][::-1]
         ax.barh(names, share, color=SERIES[0], height=0.6)
         for y, v in enumerate(share):

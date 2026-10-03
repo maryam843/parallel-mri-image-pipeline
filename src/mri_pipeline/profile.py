@@ -25,7 +25,7 @@ STAGES = {
     "Gabor": "gabor_filter",
     "Hessian": "hessian_filter",
     "Prewitt": "prewitt_filter",
-    "GLCM (7 images x 24 features)": "features_from_filtered",
+    "GLCM (7 filtered images x 24 features per image)": "features_from_filtered",
 }
 
 
