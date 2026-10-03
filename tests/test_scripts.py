@@ -27,8 +27,17 @@ tables = load("update_readme_tables")
 
 
 def test_repo_readme_claims_pass():
-    """T11 on the real README and the committed results/."""
+    """T11 on the real README, docs/RESULTS.md and the committed results/."""
     assert claims.check(ROOT / "README.md", ROOT / "results") == []
+    assert claims.check(ROOT / "docs" / "RESULTS.md", ROOT / "results") == []
+
+
+def test_every_generated_table_is_in_a_document():
+    from mri_pipeline.report import render_all
+
+    text = "".join((ROOT / d).read_text(encoding="utf-8") for d in claims.DOCUMENTS)
+    missing = [n for n in render_all(ROOT / "results") if f"<!-- BEGIN:{n} -->" not in text]
+    assert missing == []
 
 
 @pytest.fixture
