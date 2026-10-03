@@ -269,19 +269,19 @@ Task `filters`: 200 images, fast mode, resized to 256x256, largest image = 0.5 %
 
 | Configuration | Processes | Time (s), mean +/- sd | Speedup | Efficiency |
 |---|---:|---:|---:|---:|
-| Sequential loop (no pool) | 1 | 88.24 +/- 8.08 | 1.00x | 1.00 |
-| Pool.map | 1 | 93.02 +/- 6.17 | 0.95x +/- 0.06 | 0.95 |
-| Pool.map | 2 | 52.25 +/- 3.84 | 1.70x +/- 0.13 | 0.85 |
-| Pool.map | 4 | 31.47 +/- 5.04 | 2.85x +/- 0.44 | 0.71 |
-| Pool.map | 6 | 29.28 +/- 10.13 | 3.26x +/- 1.08 | 0.54 |
-| Pool.map | 8 | 25.23 +/- 7.80 | 3.73x +/- 1.15 | 0.47 |
-| Pool.map | 10 | 30.48 +/- 23.09 | 3.97x +/- 2.15 | 0.40 |
-| Pool.map | 12 | 17.77 +/- 1.24 | 4.98x +/- 0.35 | 0.41 |
+| Sequential loop (no pool) | 1 | 78.33 +/- 5.97 | 1.00x | 1.00 |
+| Pool.map | 1 | 83.45 +/- 4.73 | 0.94x +/- 0.05 | 0.94 |
+| Pool.map | 2 | 51.28 +/- 5.70 | 1.54x +/- 0.18 | 0.77 |
+| Pool.map | 4 | 29.32 +/- 0.78 | 2.67x +/- 0.07 | 0.67 |
+| Pool.map | 6 | 22.53 +/- 1.08 | 3.48x +/- 0.17 | 0.58 |
+| Pool.map | 8 | 19.32 +/- 0.15 | 4.05x +/- 0.03 | 0.51 |
+| Pool.map | 10 | 16.71 +/- 0.12 | 4.69x +/- 0.03 | 0.47 |
+| Pool.map | 12 | 17.50 +/- 0.13 | 4.48x +/- 0.03 | 0.37 |
 <!-- END:part_b_scaling -->
 
 ![Part B speedup vs processes](figures/part_b/scaling_speedup.png)
 
-On this laptop the pool reaches 4.98x with 12 processes and 3.26x with 6, one per physical core. The spread is large at 6 to 10 processes because the first of the three rounds was much slower there (`results/part_b/scaling_runs.csv`); other programs were open on the laptop and free memory was low (`memory_at_start` in `results/part_b/run_info.json`). Each worker gets one BLAS thread (see `docs/DECISIONS.md`). Parallel outputs were identical to sequential outputs (`results/part_b/parallel_equivalence.json`).
+This benchmark was run on its own with `python scripts/run_part_b_scaling.py`, using the notebook's settings; the free memory and the programs using the most memory at the start are in `results/part_b/scaling_environment.json`. On this laptop the pool reaches 3.48x with 6 processes, one per physical core, and 4.69x with 10. With 12 it is a little lower (4.48x): beyond 6 processes the workers share physical cores, so each extra process adds less. Each worker gets one BLAS thread (see `docs/DECISIONS.md`). Parallel outputs were identical to sequential outputs (`results/part_b/parallel_equivalence.json`). An earlier run inside the notebook, with more programs open and less free memory, had a much larger spread at 6 to 10 processes; its files are kept in `results/part_b/scaling_first_run/`.
 
 ### GLCM + random forest vs a small CNN
 
@@ -400,6 +400,7 @@ export MRI_PART_B_LICENCE=CC-BY-4.0                # confirms you have read the 
 export MRI_PART_B_DATA_DIR=/path/to/archive        # the folder with Training/ and Testing/
 python scripts/run_part_b.py                       # writes results/part_b/ and figures/part_b/
 python scripts/check_duplicate_candidates.py       # pixel check of the near-duplicate candidates
+python scripts/run_part_b_scaling.py               # re-run only the speedup benchmark
 ```
 
 The walkthrough notebook runs on synthetic images by default. To execute it and save its outputs:
