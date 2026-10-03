@@ -204,3 +204,25 @@ def test_check_duplicate_candidates_script(tmp_path: Path, monkeypatch):
     assert summary["image_size"] == 32
     rows = read_csv_rows(out / "duplicate_candidates_pixel.csv")
     assert len(rows) == len(candidates)
+
+
+def test_run_part_b_scaling_script(tmp_path: Path, monkeypatch):
+    from mri_pipeline import part_b
+    from mri_pipeline.synthetic import make_split_dataset
+
+    script = load("run_part_b_scaling")
+    assert script.process_counts(12) == [1, 2, 4, 6, 8, 10, 12]
+    assert script.process_counts(4) == [1, 2, 4]
+    assert script.process_counts(7) == [1, 2, 4, 6, 7]
+    monkeypatch.delenv(part_b.DATA_ENV, raising=False)
+    assert script.main([]) == 1
+    make_split_dataset(tmp_path / "data", per_class={"Training": 2, "Testing": 1})
+    monkeypatch.setenv(part_b.DATA_ENV, str(tmp_path / "data"))
+    args = ["--results", str(tmp_path / "res"), "--figures", str(tmp_path / "fig"),
+            "--images", "4", "--resize", "32", "--repeats", "2",
+            "--processes", "1", "2"]  # fmt: skip
+    assert script.main(args) == 0
+    env = json.loads((tmp_path / "res" / "scaling_environment.json").read_text(encoding="utf-8"))
+    assert {"memory_at_start", "benchmark_seconds"} <= set(env)
+    assert (tmp_path / "fig" / "scaling_speedup.png").is_file()
+    assert (tmp_path / "res" / "scaling_summary.csv").is_file()
