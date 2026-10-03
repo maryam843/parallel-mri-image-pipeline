@@ -143,5 +143,5 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 ## Part B: a small CNN sized for a laptop CPU
 - **Choice:** four convolution blocks (about 98 thousand parameters), 128x128 grayscale input, 20 epochs, 3 seeds, no validation split and no early stopping.
 - **Alternatives:** a pretrained network (transfer learning), a larger input, a GPU.
-- **Reason:** it trains in minutes per seed on a CPU and gives an honest from-scratch baseline. A fixed number of epochs means the Testing split is never used to choose anything.
+- **Reason:** it trains in minutes per seed on a CPU and gives an honest from-scratch baseline. A set number of epochs means the Testing split is never used to choose anything.
 - **Trade-off:** it is a baseline, not a strong model. I did not try a pretrained network.

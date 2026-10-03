@@ -226,7 +226,7 @@ python scripts/pii_scan.py --history          # secrets / personal data in the w
 - **Course staff, DSAI3202 (UDST):** the six filter calls and their parameters, and the `compute_glcm_features` helper. `src/mri_pipeline/filters.py` and the GLCM part of `src/mri_pipeline/features.py` are based on them, and the header of each file says "Provided by DSAI3202 course staff (UDST). Modified by me: yes" and what I changed.
 - **My own work:** the parallel pipeline, the experiments, the evaluation, the tests, the scripts, the notebooks and the documentation.
 - **Dataset:** Navoneel Chakrabarty, "Brain MRI Images for Brain Tumor Detection", Kaggle (not redistributed here).
-- **Part B dataset:** "Brain Tumor MRI Dataset" by Masoud Nickparvar, Kaggle, Version 2: <https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset>. Licence: CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). The author built it from three original sources: figshare, SARTAJ and Br35H. The images are not redistributed here; resizing and normalisation are done by my code.
+- **Part B dataset:** "Brain Tumor MRI Dataset" by Masoud Nickparvar, Kaggle, Version 2: <https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset>. Licence: CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). The author built it from three source datasets: figshare, SARTAJ and Br35H. The images are not redistributed here; resizing and normalisation are done by my code.
 - **Libraries:** NumPy, SciPy, scikit-image, scikit-learn, OpenCV, matplotlib, PyTorch (Part B).
 
 ## Licence
