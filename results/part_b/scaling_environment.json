@@ -1,0 +1,11 @@
+{
+  "started_utc": "2026-10-02T23:40:23Z",
+  "memory_at_start": {
+    "total_gb": 15.2,
+    "available_gb": 4.1,
+    "free_commit_gb": 5.7
+  },
+  "note": "process names only, all processes of one name added up (working set)",
+  "benchmark_seconds": 972.5,
+  "finished_utc": "2026-10-02T23:56:36Z"
+}
