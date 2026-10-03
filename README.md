@@ -147,11 +147,11 @@ Trained on the Training split, seeds 0, 1, 2, mean +/- sd over seeds (`results/p
 
 - Small dataset (253 images, 228 unique). Differences of a few points between models are within the fold-to-fold spread.
 - **Not a clinical tool.** Nothing here should be used to make decisions about a patient.
-- Timings are machine-specific: 4 vCPUs on a cloud virtual machine. The virtual machine reports 1 thread per core, but I cannot see how its cores map to physical hardware.
+- Timings are machine-specific, and two kinds of machine were used. Part A ran on 4-vCPU cloud virtual machines: the fast-mode runs and the full-mode scaling runs came from two different CPU models, so they were not the same machine. They report 1 thread per core, but I cannot see how their cores map to physical hardware. Part B ran on a 6-core laptop (12 logical cores).
 - Fast mode (Hessian sigmas 1-9) is not the same computation as full mode; the full-mode numbers come from a 16-image subset and a single run.
 - The Gabor filter runs on uint8 input and returns uint8, so its negative responses wrap. I kept the course filter settings unchanged and documented it in `docs/DECISIONS.md`.
 - I did not try a CNN on the 253-image dataset. Part B has a small CNN baseline on the larger dataset, trained from scratch on a CPU; it is a baseline, not a tuned model.
-- Part B uses one provided split and three seeds, so the spread shows training noise only, not how the scores would change on another split or on scans from another hospital. Its timings come from a laptop with other programs open.
+- Part B uses one provided split and three seeds, so the spread shows training noise only, not how the scores would change on another split or on scans from another hospital. The Part B speedup comes from a separate re-run of the benchmark; the first, noisier run (inside the notebook, with more programs open) is kept in `results/part_b/scaling_first_run/`. The other Part B timings come from the notebook run, with other programs open on the laptop.
 
 ## What I learned (to be written by me)
 
