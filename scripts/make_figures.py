@@ -13,17 +13,18 @@ from pathlib import Path
 from mri_pipeline.plotting import INK, INK_2, MARKERS, SERIES, SURFACE, new_figure, save
 from mri_pipeline.report import read_csv
 
+# (file suffix, label, note): the full-mode run was one run on a different VM.
 SCALING_SERIES = (
-    ("", "fast, native sizes"),
-    ("_resized_256", "fast, resized 256x256"),
-    ("_full_resized_256", "full, resized 256x256"),
+    ("", "fast, native sizes", ""),
+    ("_resized_256", "fast, resized 256x256", ""),
+    ("_full_resized_256", "full, resized 256x256", "different VM, "),
 )
 
 
 def scaling_figure(results: Path, out: Path) -> Path:
     fig, (ax,) = new_figure(8.0, 4.4)
     max_p = 1
-    for k, (suffix, label) in enumerate(SCALING_SERIES):
+    for k, (suffix, label, note) in enumerate(SCALING_SERIES):
         path = results / f"scaling_summary{suffix}.csv"
         if not path.exists():
             continue
@@ -48,7 +49,7 @@ def scaling_figure(results: Path, out: Path) -> Path:
         )
         runs = f"{meta['repeats']} run" + ("s" if meta["repeats"] > 1 else "")
         ax.annotate(
-            f"{s[-1]:.2f}x  {label}\n{meta['n_images']} images, {runs}",
+            f"{s[-1]:.2f}x  {label}\n{meta['n_images']} images, {note}{runs}",
             (p[-1], s[-1]),
             textcoords="offset points",
             xytext=(10, 0),
