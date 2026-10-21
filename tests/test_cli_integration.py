@@ -127,6 +127,10 @@ def test_run_scaling_command(tmp_path, synthetic_dir):
     assert meta["parallel_equals_sequential"] is True
     assert meta["n_images"] == 6 and meta["repeats"] == 2
     assert "hostname" not in json.dumps(meta).lower()
+    assert set(meta["machine"]) == {  # no kernel version, host or user name
+        "os", "machine", "cpu_model", "os_cpu_count", "physical_cores", "usable_cores",
+        "python", "start_method", "packages",
+    }  # fmt: skip
     summary = read_rows(tmp_path / "scaling_summary.csv")
     assert [r["config"] for r in summary] == ["sequential", "map_p1", "map_p2"]
     assert float(summary[0]["speedup_mean"]) == 1.0
