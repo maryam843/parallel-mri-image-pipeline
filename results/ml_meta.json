@@ -39,7 +39,7 @@
   },
   "feature_extraction": {
     "processes": 4,
-    "seconds": 107.025,
+    "seconds": 107.792,
     "strategy": "Pool.map"
   },
   "feature_sha256": {
@@ -66,6 +66,7 @@
     "machine": "x86_64",
     "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
     "os_cpu_count": 4,
+    "physical_cores": 4,
     "usable_cores": 4,
     "python": "3.12.3",
     "start_method": "fork",
@@ -78,6 +79,6 @@
       "matplotlib": "3.11.2"
     }
   },
-  "started_utc": "2026-10-01T22:11:49Z",
-  "finished_utc": "2026-10-01T22:15:03Z"
+  "started_utc": "2026-10-21T02:59:43Z",
+  "finished_utc": "2026-10-21T03:02:57Z"
 }
