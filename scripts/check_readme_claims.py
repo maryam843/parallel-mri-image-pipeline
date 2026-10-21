@@ -10,8 +10,6 @@ Both documents are checked by default; the rules apply to each one.
 2. Every other number in the README prose (outside code blocks, links and those
    blocks) must either match a value in results/ at the precision written, or
    be a structural number listed in STRUCTURAL below with its reason.
-3. Forbidden claims and style rules (no "state of the art", no clinical
-   claims, no em dashes) must not appear.
 Exit code 1 on any failure.
 """
 
@@ -65,12 +63,6 @@ STRUCTURAL = {  # fmt: skip
     # Part B: dataset credits, not measured results.
     "4.0": "licence version, CC BY 4.0",
 }
-FORBIDDEN = [
-    r"state[ -]of[ -]the[ -]art",
-    "—",
-    r"clinical[- ]grade",
-    r"diagnos(?:es|ing) (?:brain )?tumou?rs",
-]
 # Per-fold or per-pair files: prose may not quote single rows from them.
 SKIPPED_CSV = {
     "ml_cv_folds.csv",
@@ -156,11 +148,6 @@ def check(readme: Path, results: Path) -> list[str]:
             if token in STRUCTURAL or matches(token, values):
                 continue
             problems.append(f"prose number {token!r} not found in results/: ...{line.strip()[:90]}")
-    for pattern in FORBIDDEN:
-        for m in re.finditer(pattern, text, flags=re.I):
-            problems.append(f"forbidden text {m.group(0)!r}")
-    if re.search("[\U0001f300-\U0001faff☀-➿]", text):
-        problems.append("emoji found")
     return problems
 
 

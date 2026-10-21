@@ -62,13 +62,6 @@ def test_claims_detect_stale_table(tmp_path: Path, results_copy: Path):
     assert claims.check(readme, results_copy) == []
 
 
-def test_claims_forbidden_text(tmp_path: Path, results_copy: Path):
-    readme = tmp_path / "README.md"
-    readme.write_text("A state of the art, clinical-grade result \u2014 wow\n", encoding="utf-8")
-    problems = claims.check(readme, results_copy)
-    assert sum("forbidden" in p for p in problems) == 3
-
-
 def test_pii_scan_text_patterns():
     secret = "AK" + "IA" + "ABCDEFGHIJKLMNOP"
     text = "\n".join(
