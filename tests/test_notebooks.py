@@ -1,4 +1,4 @@
-"""T13: notebooks execute top to bottom headless."""
+"""Notebooks execute top to bottom headless."""
 
 from __future__ import annotations
 

@@ -27,7 +27,7 @@ tables = load("update_readme_tables")
 
 
 def test_repo_readme_claims_pass():
-    """T11 on the real README, docs/RESULTS.md and the committed results/."""
+    """Claims check on the real README, docs/RESULTS.md and the committed results/."""
     assert claims.check(ROOT / "README.md", ROOT / "results") == []
     assert claims.check(ROOT / "docs" / "RESULTS.md", ROOT / "results") == []
 
@@ -109,7 +109,7 @@ def test_pii_scan_history_on_temp_repo(tmp_path: Path):
 
 
 def test_repo_worktree_is_clean():
-    """T12 (working tree). The CI job also runs --history."""
+    """PII scan of the working tree. The CI job also runs --history."""
     assert pii.main(["--root", str(ROOT)]) == 0
 
 

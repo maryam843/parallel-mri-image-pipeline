@@ -141,7 +141,7 @@ def test_run_scaling_command(tmp_path, synthetic_dir):
 
 
 def test_run_ml_command_and_reproducible(tmp_path, larger_synthetic_dir):
-    """T8: same seed -> identical features and identical CV scores."""
+    """Same seed -> identical features and identical CV scores."""
     outs = []
     for name in ("a", "b"):
         out = tmp_path / name
