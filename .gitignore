@@ -22,10 +22,18 @@ venv/
 build/
 dist/
 .ipynb_checkpoints/
+.idea/
+.vscode/
+# operating system files
+.DS_Store
+Thumbs.db
 # never commit these
 *.pdf
 kaggle.json
 .env
+.env.*
+*.log
+*.bundle
 # Part B: never commit images, archives, model weights or checkpoints
 *.zip
 *.pt
@@ -34,3 +42,8 @@ kaggle.json
 *.safetensors
 *.jpg
 *.jpeg
+*.JPG
+*.JPEG
+*.npy
+*.npz
+*.pkl
