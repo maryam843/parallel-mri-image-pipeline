@@ -98,8 +98,12 @@ def train(
     """Train from scratch; returns the model after the last epoch and a per-epoch history.
 
     The training accuracy in the history is the running accuracy on the
-    (flipped) batches during that epoch, not a separate evaluation.
+    (flipped) batches during that epoch, not a separate evaluation. A last
+    batch of one image is skipped: batch norm cannot train on a single value
+    per channel, which happens with one image and small inputs.
     """
+    if len(y) < 2:
+        raise ValueError("training needs at least 2 images")
     make_deterministic(seed, threads)
     generator = torch.Generator().manual_seed(seed)
     model = build_model(n_classes)
@@ -110,9 +114,11 @@ def train(
         model.train()
         start = time.perf_counter()
         order = torch.randperm(len(labels), generator=generator)
-        loss_sum, correct = 0.0, 0
+        loss_sum, correct, seen = 0.0, 0, 0
         for begin in range(0, len(order), batch_size):
             idx = order[begin : begin + batch_size]
+            if len(idx) == 1:
+                continue
             xb, yb = _scale(x_u8[idx]), labels[idx]
             if flip:
                 mask = torch.rand(len(idx), generator=generator) < 0.5
@@ -124,10 +130,11 @@ def train(
             optimiser.step()
             loss_sum += loss.item() * len(idx)
             correct += int((logits.argmax(1) == yb).sum())
+            seen += len(idx)
         row = {
             "epoch": epoch,
-            "train_loss": round(loss_sum / len(labels), 4),
-            "train_accuracy_running": round(correct / len(labels), 4),
+            "train_loss": round(loss_sum / seen, 4),
+            "train_accuracy_running": round(correct / seen, 4),
             "seconds": round(time.perf_counter() - start, 2),
         }
         history.append(row)

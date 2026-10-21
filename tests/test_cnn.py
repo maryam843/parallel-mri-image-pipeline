@@ -67,3 +67,13 @@ def test_thread_count_from_environment():
     assert cnn.thread_count({cnn.THREADS_ENV: "6"}) == 6
     with pytest.raises(ValueError):
         cnn.thread_count({cnn.THREADS_ENV: "0"})
+
+
+def test_a_last_batch_of_one_image_is_skipped():
+    rng = np.random.default_rng(1)
+    images = [rng.integers(0, 256, size=(8, 8), dtype=np.uint8) for _ in range(9)]
+    x, y = cnn.to_uint8_tensor(images), np.arange(9) % 4
+    _, history = cnn.train(x, y, n_classes=4, epochs=1, seed=0, batch_size=4)  # 4 + 4 + 1
+    assert len(history) == 1 and history[0]["train_loss"] > 0
+    with pytest.raises(ValueError):
+        cnn.train(x[:1], y[:1], n_classes=4, epochs=1, seed=0)
