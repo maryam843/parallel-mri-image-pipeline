@@ -2,7 +2,9 @@
 
     MRI_PART_B_LICENCE=CC-BY-4.0 MRI_PART_B_DATA_DIR=<data folder> python scripts/run_part_b.py
 
-The data folder is the one that holds Training/ and Testing/.
+The data folder is the one that holds Training/ and Testing/. The CNN trains
+with --torch-threads CPU threads (default: MRI_TORCH_THREADS, otherwise 4);
+the thread count is part of what makes two runs give identical weights.
 
 The notebook writes results/part_b/ and figures/part_b/. Before saving,
 execution metadata (timestamps) is removed and every output is scrubbed of the
@@ -12,6 +14,7 @@ notebook holds only code, outputs and execution counts.
 
 from __future__ import annotations
 
+import argparse
 import getpass
 import os
 import platform
@@ -80,5 +83,16 @@ def run(path: Path = NOTEBOOK, timeout: int = 6 * 3600) -> int:
     return 1 if errors else 0
 
 
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Execute the Part B notebook headless.")
+    parser.add_argument("--torch-threads", type=int, default=None, help="CPU threads for the CNN")
+    args = parser.parse_args(argv)
+    if args.torch_threads is not None:
+        if args.torch_threads < 1:
+            parser.error("--torch-threads must be at least 1")
+        os.environ["MRI_TORCH_THREADS"] = str(args.torch_threads)  # read by the notebook kernel
+    return run()
+
+
 if __name__ == "__main__":
-    sys.exit(run())
+    sys.exit(main())

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -280,3 +281,13 @@ def test_claims_main_checks_every_document(tmp_path: Path, results_copy: Path, c
     out = capsys.readouterr().out
     assert f"{bad}: prose number '98765'" in out
     assert claims.DOCUMENTS == tables.DOCUMENTS
+
+
+def test_run_part_b_passes_the_thread_count_to_the_notebook(monkeypatch):
+    script = load("run_part_b")
+    monkeypatch.delenv("MRI_TORCH_THREADS", raising=False)
+    monkeypatch.setattr(script, "run", lambda: 0)
+    assert script.main(["--torch-threads", "3"]) == 0
+    assert os.environ["MRI_TORCH_THREADS"] == "3"
+    with pytest.raises(SystemExit):
+        script.main(["--torch-threads", "0"])

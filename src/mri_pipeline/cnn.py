@@ -6,10 +6,15 @@ dropout 0.2 and one linear layer. Input: one grayscale channel, already
 resized by ``mri_pipeline.io.load_image``; pixel values are scaled to 0-1
 here. Training: Adam, cross-entropy, random horizontal flips, a fixed number
 of epochs, and one seed for the weights, the shuffling and the flips.
+
+Runs are deterministic: deterministic torch algorithms and a fixed number of
+CPU threads (MRI_TORCH_THREADS, default 4), because the thread count changes
+the order of floating-point sums and so the trained weights.
 """
 
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -17,6 +22,31 @@ from typing import Any
 import numpy as np
 import torch
 from torch import nn
+
+THREADS_ENV = "MRI_TORCH_THREADS"
+DEFAULT_THREADS = 4
+
+
+def thread_count(environ: dict[str, str] | None = None) -> int:
+    """CPU threads for training: MRI_TORCH_THREADS if set, otherwise 4."""
+    value = (os.environ if environ is None else environ).get(THREADS_ENV, "").strip()
+    count = int(value) if value else DEFAULT_THREADS
+    if count < 1:
+        raise ValueError(f"{THREADS_ENV} must be a positive integer, got {value!r}")
+    return count
+
+
+def make_deterministic(seed: int, threads: int | None = None) -> int:
+    """Seed torch, use deterministic algorithms and a fixed thread count.
+
+    Returns the thread count used.
+    """
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")  # needed on CUDA only
+    threads = thread_count() if threads is None else threads
+    torch.set_num_threads(threads)
+    torch.use_deterministic_algorithms(True)
+    torch.manual_seed(seed)
+    return threads
 
 
 def build_model(n_classes: int) -> nn.Sequential:
@@ -63,13 +93,14 @@ def train(
     lr: float = 1e-3,
     flip: bool = True,
     log: Callable[[dict[str, Any]], None] | None = None,
+    threads: int | None = None,
 ) -> tuple[nn.Sequential, list[dict[str, Any]]]:
     """Train from scratch; returns the model after the last epoch and a per-epoch history.
 
     The training accuracy in the history is the running accuracy on the
     (flipped) batches during that epoch, not a separate evaluation.
     """
-    torch.manual_seed(seed)
+    make_deterministic(seed, threads)
     generator = torch.Generator().manual_seed(seed)
     model = build_model(n_classes)
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)

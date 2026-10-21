@@ -49,3 +49,21 @@ def test_predict_returns_one_class_per_image(tiny):
     pred = cnn.predict(model, x, batch_size=3)
     assert pred.shape == (10,)
     assert set(pred.tolist()) <= {0, 1, 2, 3}
+
+
+def test_same_seed_gives_identical_weights(tiny):
+    x, y = tiny
+    first, _ = cnn.train(x, y, n_classes=4, epochs=2, seed=3, batch_size=4, threads=2)
+    second, _ = cnn.train(x, y, n_classes=4, epochs=2, seed=3, batch_size=4, threads=2)
+    a, b = first.state_dict(), second.state_dict()
+    assert list(a) == list(b)
+    assert all(torch.equal(a[k], b[k]) for k in a)
+    assert torch.are_deterministic_algorithms_enabled()
+    assert torch.get_num_threads() == 2
+
+
+def test_thread_count_from_environment():
+    assert cnn.thread_count({}) == 4
+    assert cnn.thread_count({cnn.THREADS_ENV: "6"}) == 6
+    with pytest.raises(ValueError):
+        cnn.thread_count({cnn.THREADS_ENV: "0"})
