@@ -35,6 +35,7 @@
     3,
     4
   ],
+  "worker_threads": null,
   "repeats": 1,
   "timer": "time.perf_counter",
   "speedup_baseline": "mean of the sequential loop (no pool)",
@@ -43,8 +44,9 @@
   "machine": {
     "os": "Linux",
     "machine": "x86_64",
-    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
     "os_cpu_count": 4,
+    "physical_cores": 4,
     "usable_cores": 4,
     "python": "3.12.3",
     "start_method": "fork",
@@ -57,6 +59,7 @@
       "matplotlib": "3.11.2"
     }
   },
-  "started_utc": "2026-10-02T12:28:50Z",
-  "finished_utc": "2026-10-02T13:21:39Z"
+  "machine_note": "shared cloud VM (4 vCPU); timings can vary between runs",
+  "started_utc": "2026-10-21T03:03:09Z",
+  "finished_utc": "2026-10-21T04:32:06Z"
 }

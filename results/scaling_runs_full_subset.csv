@@ -1,6 +1,6 @@
 config,strategy,processes,chunksize,repeat,seconds
-sequential,sequential,1,n/a,0,832.0335
-map_p1,map,1,auto,0,820.8633
-map_p2,map,2,auto,0,566.3059
-map_p3,map,3,auto,0,507.9919
-map_p4,map,4,auto,0,440.2778
+sequential,sequential,1,n/a,0,1395.5463
+map_p1,map,1,auto,0,1414.1322
+map_p2,map,2,auto,0,936.7399
+map_p3,map,3,auto,0,854.3759
+map_p4,map,4,auto,0,734.7322
