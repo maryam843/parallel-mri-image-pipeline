@@ -8,6 +8,7 @@ be traced to a file.
 from __future__ import annotations
 
 import csv
+import fnmatch
 import functools
 import hashlib
 import json
@@ -503,13 +504,23 @@ def run_ml(
     return {"summary": summary, "meta": meta}
 
 
-def run_inventory(data_dir: Path, out_dir: Path, manifest: Path | None = None) -> dict[str, Any]:
-    import glob
+def count_case_sensitive_glob(folder: Path, pattern: str = "*.jpg") -> int:
+    """Files a case-sensitive glob would find (as on Linux), on every operating system.
 
+    glob.glob is case-insensitive on Windows, so it is not used for this count.
+    """
+    return sum(
+        1
+        for p in Path(folder).iterdir()
+        if not p.name.startswith(".") and fnmatch.fnmatchcase(p.name, pattern)
+    )
+
+
+def run_inventory(data_dir: Path, out_dir: Path, manifest: Path | None = None) -> dict[str, Any]:
     records = io.list_images(data_dir)
     hashes = [r.sha256 for r in records]
     counts = io.count_by_class_and_extension(records)
-    lowercase_jpg = {c: len(glob.glob(str(Path(data_dir) / c / "*.jpg"))) for c in sorted(counts)}
+    lowercase_jpg = {c: count_case_sensitive_glob(Path(data_dir) / c) for c in sorted(counts)}
     summary = {
         "n_images": len(records),
         "class_counts": {c: int(sum(v.values())) for c, v in counts.items()},

@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from mri_pipeline import io
+from mri_pipeline import experiments, io
 
 
 def test_finds_every_extension_in_any_case(synthetic_dir: Path) -> None:
@@ -103,3 +103,9 @@ def test_manifest_round_trip(tmp_path: Path, synthetic_dir: Path) -> None:
     assert len(diff["mismatched"]) == 1
     assert diff["missing"] == ["no/ghost.jpg"]
     assert len(diff["extra"]) == 1
+
+
+def test_case_sensitive_glob_count_is_the_same_on_every_os(tmp_path: Path):
+    for name in ("a.jpg", "b.JPG", "c.jpeg", "d.png", ".hidden.jpg"):
+        (tmp_path / name).write_bytes(b"")
+    assert experiments.count_case_sensitive_glob(tmp_path) == 1
