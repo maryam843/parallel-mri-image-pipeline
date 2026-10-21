@@ -6,47 +6,19 @@ loss. No MRI image is drawn.
 
 from __future__ import annotations
 
-import csv
 import json
 from pathlib import Path
 
-import matplotlib
+import numpy as np
 
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
+from mri_pipeline.plotting import GRID, INK, INK_2, SERIES, SURFACE, new_figure, save
+from mri_pipeline.report import read_csv
 
-SURFACE = "#fcfcfb"
-INK = "#0b0b0b"
-INK_2 = "#52514e"
-GRID = "#e4e3df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
 MODELS = {"glcm_rf": "GLCM + random forest", "small_cnn": "Small CNN"}
 
 
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with open(path, newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle))
-
-
 def _new(width: float, height: float, ncols: int = 1):
-    fig, axes = plt.subplots(1, ncols, figsize=(width, height), dpi=150, squeeze=False)
-    fig.patch.set_facecolor(SURFACE)
-    for ax in axes[0]:
-        ax.set_facecolor(SURFACE)
-        for side in ("top", "right"):
-            ax.spines[side].set_visible(False)
-        for side in ("left", "bottom"):
-            ax.spines[side].set_color(INK_2)
-        ax.tick_params(colors=INK_2, labelsize=8)
-    return fig, axes[0]
-
-
-def _save(fig, path: Path) -> Path:
-    fig.tight_layout()
-    fig.savefig(path, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    return new_figure(width, height, ncols, labelsize=8, grid=False)
 
 
 def scaling_figure(part_b: Path, out: Path) -> Path:
@@ -77,7 +49,7 @@ def scaling_figure(part_b: Path, out: Path) -> Path:
         loc="left",
     )
     ax.legend(frameon=False, fontsize=8, loc="upper left")
-    return _save(fig, out / "scaling_speedup.png")
+    return save(fig, out / "scaling_speedup.png")
 
 
 def confusion_figure(part_b: Path, out: Path, seed: int = 0) -> Path:
@@ -104,7 +76,7 @@ def confusion_figure(part_b: Path, out: Path, seed: int = 0) -> Path:
         x=0.01,
         ha="left",
     )
-    return _save(fig, out / "confusion_matrices.png")
+    return save(fig, out / "confusion_matrices.png")
 
 
 def per_class_f1_figure(part_b: Path, out: Path) -> Path:
@@ -130,7 +102,7 @@ def per_class_f1_figure(part_b: Path, out: Path) -> Path:
     ax.set_ylabel("F1, mean +/- sd over seeds", color=INK, fontsize=9)
     ax.set_title("Per-class F1 on the Testing split as provided", color=INK, fontsize=9, loc="left")
     ax.legend(frameon=False, fontsize=8, loc="lower right")
-    return _save(fig, out / "per_class_f1.png")
+    return save(fig, out / "per_class_f1.png")
 
 
 def cnn_loss_figure(part_b: Path, out: Path) -> Path:
@@ -152,7 +124,7 @@ def cnn_loss_figure(part_b: Path, out: Path) -> Path:
     ax.set_ylabel("Training loss (cross-entropy)", color=INK, fontsize=9)
     ax.set_title("Small CNN: training loss per epoch", color=INK, fontsize=9, loc="left")
     ax.legend(frameon=False, fontsize=8)
-    return _save(fig, out / "cnn_training_loss.png")
+    return save(fig, out / "cnn_training_loss.png")
 
 
 def make_all(part_b: Path, out: Path) -> list[Path]:

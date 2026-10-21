@@ -7,47 +7,11 @@ python scripts/make_figures.py [--results results] [--out figures]
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 from pathlib import Path
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-
-SURFACE = "#fcfcfb"
-INK = "#0b0b0b"
-INK_2 = "#52514e"
-GRID = "#e4e3df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]  # validated categorical slots 1-3
-MARKERS = ["o", "s", "D"]
-
-
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with open(path, newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle))
-
-
-def style(ax: plt.Axes) -> None:
-    ax.set_facecolor(SURFACE)
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color(INK_2)
-        ax.spines[side].set_linewidth(0.8)
-    ax.tick_params(colors=INK_2, labelsize=9)
-    ax.grid(True, color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
-
-
-def new_figure(width: float, height: float, ncols: int = 1):
-    fig, axes = plt.subplots(1, ncols, figsize=(width, height), dpi=150, squeeze=False)
-    fig.patch.set_facecolor(SURFACE)
-    for ax in axes[0]:
-        style(ax)
-    return fig, axes[0]
-
+from mri_pipeline.plotting import INK, INK_2, MARKERS, SERIES, SURFACE, new_figure, save
+from mri_pipeline.report import read_csv
 
 SCALING_SERIES = (
     ("", "fast, native sizes"),
@@ -107,11 +71,7 @@ def scaling_figure(results: Path, out: Path) -> Path:
         fontsize=10,
         loc="left",
     )
-    fig.tight_layout()
-    path = out / "scaling_speedup.png"
-    fig.savefig(path, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    return save(fig, out / "scaling_speedup.png")
 
 
 def profile_figure(results: Path, out: Path) -> Path:
@@ -136,11 +96,7 @@ def profile_figure(results: Path, out: Path) -> Path:
         x=0.01,
         ha="left",
     )
-    fig.tight_layout()
-    path = out / "profile_share.png"
-    fig.savefig(path, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    return save(fig, out / "profile_share.png")
 
 
 def ml_figure(results: Path, out: Path) -> Path:
@@ -183,11 +139,7 @@ def ml_figure(results: Path, out: Path) -> Path:
         fontsize=10,
         loc="left",
     )
-    fig.tight_layout()
-    path = out / "ml_accuracy.png"
-    fig.savefig(path, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    return save(fig, out / "ml_accuracy.png")
 
 
 def main() -> None:
