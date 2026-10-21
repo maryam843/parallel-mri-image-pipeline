@@ -25,11 +25,7 @@
     "scaling_processes": [
       1,
       2,
-      4,
-      6,
-      8,
-      10,
-      12
+      4
     ],
     "scaling_subset_seed": 0,
     "hessian_mode": "fast",
@@ -48,33 +44,37 @@
   },
   "cnn": {
     "parameters": 97908,
-    "torch_threads": 6
+    "torch_version": "2.14.1+cpu",
+    "torch_threads": 4,
+    "deterministic_algorithms": true,
+    "os": "Linux",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz"
   },
   "step_seconds": {
-    "count_check": 6.36,
-    "duplicate_check": 13.55,
-    "scaling": 1120.78,
-    "glcm_features": 819.47,
-    "random_forest": 8.86,
-    "cnn": 2056.22
+    "count_check": 1.33,
+    "duplicate_check": 3.67,
+    "scaling": 643.86,
+    "glcm_features": 1132.42,
+    "random_forest": 11.47,
+    "cnn": 2171.27
   },
   "fit_seconds": {
-    "glcm_rf_seed_0": 3.16,
-    "glcm_rf_seed_1": 2.82,
-    "glcm_rf_seed_2": 2.82,
-    "small_cnn_seed_0": 672.37,
-    "small_cnn_seed_1": 676.78,
-    "small_cnn_seed_2": 694.96
+    "glcm_rf_seed_0": 3.88,
+    "glcm_rf_seed_1": 3.77,
+    "glcm_rf_seed_2": 3.78,
+    "small_cnn_seed_0": 687.05,
+    "small_cnn_seed_1": 729.7,
+    "small_cnn_seed_2": 748.87
   },
   "machine": {
-    "os": "Windows",
-    "machine": "AMD64",
-    "cpu_model": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics",
-    "os_cpu_count": 12,
-    "physical_cores": 6,
-    "usable_cores": 12,
-    "python": "3.12.10",
-    "start_method": "spawn",
+    "os": "Linux",
+    "machine": "x86_64",
+    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "os_cpu_count": 4,
+    "physical_cores": 4,
+    "usable_cores": 4,
+    "python": "3.12.3",
+    "start_method": "fork",
     "packages": {
       "numpy": "2.5.3",
       "scipy": "1.18.1",
@@ -82,16 +82,16 @@
       "scikit-learn": "1.9.1",
       "opencv-python-headless": "5.0.0.93",
       "matplotlib": "3.11.2",
-      "torch": "2.14.1"
+      "torch": "2.14.1+cpu"
     }
   },
   "memory_at_start": {
-    "total_gb": 15.2,
-    "available_gb": 2.5,
-    "free_commit_gb": 6.4
+    "total_gb": 15.7,
+    "available_gb": 14.9,
+    "free_commit_gb": null
   },
   "worker_threads": 1,
   "python_implementation": "CPython",
-  "started_utc": "2026-10-02T20:51:58Z",
-  "finished_utc": "2026-10-02T21:59:10Z"
+  "started_utc": "2026-10-21T05:42:30Z",
+  "finished_utc": "2026-10-21T06:48:36Z"
 }
