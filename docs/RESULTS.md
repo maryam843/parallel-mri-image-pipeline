@@ -102,15 +102,15 @@ With equal-sized images the pool reaches 3.24x on 4 processes, so uneven image s
 Full mode (Hessian sigmas 1-99) on a 16-image subset, one run each (this takes about an hour, so I did not repeat it):
 
 <!-- BEGIN:scaling_full_subset -->
-Task `filters`: 16 images, full mode, native sizes, largest image = 46.1 % of all pixels, 1 run(s) each, 4 cores (Intel(R) Xeon(R) Processor @ 2.10GHz), start method `fork` (`results/scaling_summary_full_subset.csv`)
+Task `filters`: 16 images, full mode, native sizes, largest image = 46.1 % of all pixels, 1 run(s) each, 4 logical cores, 4 physical (Intel(R) Xeon(R) Processor @ 2.80GHz), start method `fork` (`results/scaling_summary_full_subset.csv`)
 
 | Configuration | Processes | Time (s), mean +/- sd | Speedup | Efficiency |
 |---|---:|---:|---:|---:|
-| Sequential loop (no pool) | 1 | 832.03 (1 run) | 1.00x | 1.00 |
-| Pool.map | 1 | 820.86 (1 run) | 1.01x (1 run) | 1.01 |
-| Pool.map | 2 | 566.31 (1 run) | 1.47x (1 run) | 0.73 |
-| Pool.map | 3 | 507.99 (1 run) | 1.64x (1 run) | 0.55 |
-| Pool.map | 4 | 440.28 (1 run) | 1.89x (1 run) | 0.47 |
+| Sequential loop (no pool) | 1 | 1395.55 (1 run) | 1.00x | 1.00 |
+| Pool.map | 1 | 1414.13 (1 run) | 0.99x (1 run) | 0.99 |
+| Pool.map | 2 | 936.74 (1 run) | 1.49x (1 run) | 0.74 |
+| Pool.map | 3 | 854.38 (1 run) | 1.63x (1 run) | 0.54 |
+| Pool.map | 4 | 734.73 (1 run) | 1.90x (1 run) | 0.47 |
 <!-- END:scaling_full_subset -->
 
 <!-- BEGIN:scaling_full_resized_256 -->
@@ -230,14 +230,14 @@ Testing split as provided, mean +/- sd over seeds (`results/part_b/per_class_sum
 
 | Model | Class | Precision | Recall | F1 | Support |
 |---|---|---:|---:|---:|---:|
-| GLCM + random forest | glioma | 0.884 +/- 0.003 | 0.667 +/- 0.003 | 0.761 +/- 0.003 | 400 |
-| GLCM + random forest | meningioma | 0.811 +/- 0.006 | 0.867 +/- 0.003 | 0.838 +/- 0.003 | 400 |
-| GLCM + random forest | notumor | 0.859 +/- 0.005 | 1.000 +/- 0.000 | 0.924 +/- 0.003 | 400 |
-| GLCM + random forest | pituitary | 0.940 +/- 0.003 | 0.952 +/- 0.004 | 0.946 +/- 0.001 | 400 |
-| Small CNN | glioma | 0.980 +/- 0.021 | 0.583 +/- 0.046 | 0.730 +/- 0.034 | 400 |
-| Small CNN | meningioma | 0.687 +/- 0.069 | 0.892 +/- 0.020 | 0.775 +/- 0.039 | 400 |
-| Small CNN | notumor | 0.874 +/- 0.030 | 0.963 +/- 0.044 | 0.915 +/- 0.007 | 400 |
-| Small CNN | pituitary | 0.912 +/- 0.068 | 0.891 +/- 0.185 | 0.889 +/- 0.076 | 400 |
+| GLCM + random forest | glioma | 0.880 +/- 0.005 | 0.673 +/- 0.006 | 0.763 +/- 0.006 | 400 |
+| GLCM + random forest | meningioma | 0.814 +/- 0.006 | 0.864 +/- 0.003 | 0.838 +/- 0.004 | 400 |
+| GLCM + random forest | notumor | 0.863 +/- 0.003 | 1.000 +/- 0.000 | 0.926 +/- 0.002 | 400 |
+| GLCM + random forest | pituitary | 0.938 +/- 0.002 | 0.951 +/- 0.004 | 0.944 +/- 0.003 | 400 |
+| Small CNN | glioma | 0.974 +/- 0.019 | 0.601 +/- 0.069 | 0.742 +/- 0.052 | 400 |
+| Small CNN | meningioma | 0.564 +/- 0.108 | 0.931 +/- 0.035 | 0.699 +/- 0.096 | 400 |
+| Small CNN | notumor | 0.876 +/- 0.058 | 0.927 +/- 0.103 | 0.896 +/- 0.028 | 400 |
+| Small CNN | pituitary | 0.972 +/- 0.036 | 0.601 +/- 0.385 | 0.683 +/- 0.327 | 400 |
 <!-- END:part_b_per_class -->
 
 ![Part B per-class F1](../figures/part_b/per_class_f1.png)
@@ -253,10 +253,10 @@ Wall-clock time of each step in one run of the notebook (`results/part_b/run_inf
 
 | Step | Time (s) |
 |---|---:|
-| Count check (list and SHA-256 every file) | 6.4 |
-| Duplicate check (perceptual hashes and pair search) | 13.6 |
-| Speedup benchmark (all configurations and repeats) | 1120.8 |
-| GLCM features for all images (parallel) | 819.5 |
-| Random forest, fit and predict (all seeds) | 8.9 |
-| Small CNN, load, train and predict (all seeds) | 2056.2 |
+| Count check (list and SHA-256 every file) | 1.3 |
+| Duplicate check (perceptual hashes and pair search) | 3.7 |
+| Speedup benchmark (all configurations and repeats) | 643.9 |
+| GLCM features for all images (parallel) | 1132.4 |
+| Random forest, fit and predict (all seeds) | 11.5 |
+| Small CNN, load, train and predict (all seeds) | 2171.3 |
 <!-- END:part_b_times -->

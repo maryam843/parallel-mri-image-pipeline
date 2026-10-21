@@ -122,10 +122,10 @@ Trained on the Training split, seeds 0, 1, 2, mean +/- sd over seeds (`results/p
 
 | Model | Test set | Test images | Accuracy | Macro F1 |
 |---|---|---:|---:|---:|
-| GLCM + random forest | Testing split as provided | 1600 | 0.872 +/- 0.002 | 0.867 +/- 0.002 |
-| Small CNN | Testing split as provided | 1600 | 0.833 +/- 0.026 | 0.827 +/- 0.021 |
-| GLCM + random forest | Testing without cross-split duplicate candidates | 1058 | 0.815 +/- 0.002 | 0.762 +/- 0.003 |
-| Small CNN | Testing without cross-split duplicate candidates | 1058 | 0.789 +/- 0.037 | 0.759 +/- 0.024 |
+| GLCM + random forest | Testing split as provided | 1600 | 0.872 +/- 0.002 | 0.868 +/- 0.002 |
+| Small CNN | Testing split as provided | 1600 | 0.765 +/- 0.092 | 0.755 +/- 0.109 |
+| GLCM + random forest | Testing without cross-split duplicate candidates | 1058 | 0.816 +/- 0.002 | 0.764 +/- 0.001 |
+| Small CNN | Testing without cross-split duplicate candidates | 1058 | 0.705 +/- 0.142 | 0.692 +/- 0.132 |
 <!-- END:part_b_models -->
 
 ![Part B confusion matrices](figures/part_b/confusion_matrices.png)
