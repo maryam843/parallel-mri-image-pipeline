@@ -420,50 +420,6 @@ def memory_snapshot() -> dict[str, float | None]:
     }
 
 
-def _process_table() -> list[tuple[str, int]]:
-    """(process name, resident bytes) for every process; empty if it cannot be read."""
-    import subprocess
-
-    if sys.platform == "win32":
-        command = [
-            "powershell",
-            "-NoProfile",
-            "-Command",
-            "Get-Process | ForEach-Object { $_.ProcessName + [char]9 + $_.WorkingSet64 }",
-        ]
-        scale = 1
-    else:
-        command, scale = ["ps", "-eo", "comm=,rss="], 1024
-    try:
-        out = subprocess.run(command, capture_output=True, text=True, timeout=60).stdout
-    except (OSError, subprocess.SubprocessError):
-        return []
-    rows = []
-    for line in out.splitlines():
-        name, _, size = line.strip().rpartition("\t" if sys.platform == "win32" else " ")
-        if name and size.strip().isdigit():
-            rows.append((name.strip(), int(size) * scale))
-    return rows
-
-
-def top_memory_processes(n: int = 10, table: list[tuple[str, int]] | None = None) -> list[dict]:
-    """The n process names using the most memory, all processes of a name added up.
-
-    Only the executable name is kept (no command line, path or user name).
-    """
-    totals: dict[str, list[int]] = {}
-    for name, size in _process_table() if table is None else table:
-        name = Path(name).name  # some platforms report a path; keep the name only
-        entry = totals.setdefault(name, [0, 0])
-        entry[0] += size
-        entry[1] += 1
-    ranked = sorted(totals.items(), key=lambda kv: kv[1][0], reverse=True)[:n]
-    return [
-        {"name": name, "processes": count, "memory_mb": round(size / 2**20)}
-        for name, (size, count) in ranked
-    ]
-
-
 # ------------------------------------------------- pixel check of candidates
 
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 from pathlib import Path
@@ -317,17 +318,9 @@ def test_pixel_similarity_of_flat_images(tmp_path: Path):
     assert other == {"pearson_r": 0.0, "mean_abs_diff": 1.0}
 
 
-def test_top_memory_processes_groups_by_name_without_paths():
-    table = [("chrome", 3 * 2**20), ("/usr/bin/chrome", 2**20), ("python", 2 * 2**20)]
-    top = part_b.top_memory_processes(5, table)
-    assert top == [
-        {"name": "chrome", "processes": 2, "memory_mb": 4},
-        {"name": "python", "processes": 1, "memory_mb": 2},
-    ]
-    assert part_b.top_memory_processes(1, table) == top[:1]
-    live = part_b.top_memory_processes(3)
-    assert len(live) <= 3
-    assert all("/" not in p["name"] and "\\" not in p["name"] for p in live)
+def test_no_process_list_is_collected():
+    source = inspect.getsource(part_b)
+    assert "Get-Process" not in source and '"ps"' not in source
 
 
 def test_leakage_by_class_counts_each_testing_file_once():

@@ -6,9 +6,9 @@ Filter stage, 200 Training images (50 per class, seed 0) resized to 256x256,
 fast mode, sequential loop and Pool.map on 1, 2, 4, then every even count up
 to the number of logical cores, 3 interleaved runs each, one BLAS thread per
 worker. Writes scaling_summary.csv, scaling_runs.csv, scaling_meta.json and
-parallel_equivalence.json to results/part_b/, the machine state at the start
-(free memory, the process names using the most memory) to
-scaling_environment.json, and redraws figures/part_b/scaling_speedup.png.
+parallel_equivalence.json to results/part_b/, the total and free memory at
+the start to scaling_environment.json, and redraws
+figures/part_b/scaling_speedup.png.
 Exit code 1 if the parallel outputs differ from the sequential ones.
 """
 
@@ -48,7 +48,6 @@ def main(argv: list[str] | None = None) -> int:
     environment = {
         "started_utc": utc_now(),
         "memory_at_start": part_b.memory_snapshot(),
-        "note": "process names only, all processes of one name added up (working set)",
     }
     start = time.perf_counter()
     out = run_scaling(

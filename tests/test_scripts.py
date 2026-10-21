@@ -232,7 +232,9 @@ def test_run_part_b_scaling_script(tmp_path: Path, monkeypatch):
             "--processes", "1", "2"]  # fmt: skip
     assert script.main(args) == 0
     env = json.loads((tmp_path / "res" / "scaling_environment.json").read_text(encoding="utf-8"))
-    assert {"memory_at_start", "benchmark_seconds"} <= set(env)
+    assert set(env) == {"started_utc", "memory_at_start", "benchmark_seconds", "finished_utc"}
+    assert set(env["memory_at_start"]) == {"total_gb", "available_gb", "free_commit_gb"}
+    assert '"name"' not in json.dumps(env)  # no process names
     assert (tmp_path / "fig" / "scaling_speedup.png").is_file()
     assert (tmp_path / "res" / "scaling_summary.csv").is_file()
 
