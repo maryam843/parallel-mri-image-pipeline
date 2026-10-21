@@ -89,7 +89,6 @@ def test_part_b_never_writes_credentials():
 # ------------------------------------------------ Part B install cell
 import importlib.util  # noqa: E402
 import re  # noqa: E402
-import types  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location("pii_scan", ROOT / "scripts" / "pii_scan.py")
 pii = importlib.util.module_from_spec(_spec)
@@ -134,52 +133,31 @@ def test_part_b_install_cell_has_no_credentials():
     assert hits == []
     assert not re.search(r"https://[^/\s:@]+:[^@\s]+@", src)  # no user:secret@host URLs
     assert not re.search(r"(?i)token\s*=\s*[\"'][^\"']+[\"']", src)  # no token literal
-    assert not re.search(r"(?i)print\([^)]*token", src)  # token never printed
-    assert "userdata.get(name)" in src and '_colab_secret("GITHUB_TOKEN")' in src
-    order = [src.index(k) for k in ("# (a)", "# (b)", "# (c)", "# (d)")]
+    assert "GITHUB_TOKEN" not in src and "extraheader" not in src  # no private-repo path
+    order = [src.index(k) for k in ("# (a)", "# (b)", "# (c)")]
     assert order == sorted(order)
 
 
-class _Result:
-    def __init__(self, code: int = 0):
-        self.returncode = code
-
-
-def test_part_b_install_path_c_keeps_token_out_of_argv(tmp_path):
+def test_part_b_install_uses_the_public_repo_when_there_is_no_local_copy():
     ns = load_install_cell()
     calls = []
 
-    def fake_run(cmd, **kwargs):
-        calls.append((cmd, kwargs.get("env") or {}))
-        return _Result(0)
+    def fake_pip(*args, env=None):
+        calls.append((args, env or {}))
+        return True
 
     ns["_local_copy"] = lambda: None
-    ns["_colab_secret"] = lambda name: "fake-secret-value-123" if name == "GITHUB_TOKEN" else None
-    ns["subprocess"] = types.SimpleNamespace(run=fake_run)
-    ns["CLONE_DIR"] = tmp_path / "clone"
-    pip_calls = []
-
-    def fake_pip(*args, env=None):
-        pip_calls.append(args)
-        return len(pip_calls) > 1  # (b) public install fails, install after clone works
-
     ns["_pip_install"] = fake_pip
-    assert ns["install_mri_pipeline"]().startswith("(c)")
-    ((cmd, env),) = calls
-    assert cmd[:2] == ["git", "clone"]
-    assert all("fake-secret" not in part for part in cmd)
-    assert "fake-secret" not in " ".join(str(a) for a in pip_calls)
-    assert env["GIT_CONFIG_KEY_0"] == "http.https://github.com/.extraheader"
+    assert ns["install_mri_pipeline"]().startswith("(b)")
+    ((args, env),) = calls
+    assert args == ("git+https://github.com/maryam843/parallel-mri-image-pipeline.git",)
     assert env["GIT_TERMINAL_PROMPT"] == "0"
 
 
-def test_part_b_install_path_d_stops_with_the_three_options():
+def test_part_b_install_stops_with_instructions_when_nothing_works():
     ns = load_install_cell()
     ns["_local_copy"] = lambda: None
-    ns["_colab_secret"] = lambda name: None
     ns["_pip_install"] = lambda *a, **k: False
     with pytest.raises(SystemExit) as exc:
         ns["install_mri_pipeline"]()
-    message = str(exc.value)
-    assert "(a)" in message and "(b)" in message and "(c)" in message
-    assert "GITHUB_TOKEN" in message
+    assert "/content/parallel-mri-image-pipeline" in str(exc.value)
