@@ -135,25 +135,25 @@ Parallel outputs were identical to sequential outputs (`np.array_equal` and `np.
 
 The cross-validation table itself is in the [README](../README.md#classifiers-vs-baselines).
 
-Rescale ablation (direct uint8 cast vs per-filter min-max): the rows marked "direct uint8 cast (ablation)" feed the GLCM step with `(image * 255).astype(np.uint8)` instead of the min-max rescale. Min-max is ahead for the SVM (0.737 vs 0.717) and the random forest (0.752 vs 0.721) but not for logistic regression (0.747 vs 0.759), and all those differences are inside one standard deviation.
+Rescale ablation (direct uint8 cast vs per-filter min-max): the rows marked "direct uint8 cast (ablation)" feed the GLCM step with `(image * 255).astype(np.uint8)` instead of the min-max rescale. Min-max is ahead for the SVM (0.728 vs 0.710) and the random forest (0.734 vs 0.693) but not for logistic regression (0.726 vs 0.743), and all those differences are inside one standard deviation.
 
-How much the duplicate files would have flattered the scores (same models, plain stratified folds that ignore duplicates):
+The cross-validation groups join exact copies and near copies (dHash and pHash both within 4 bits, the Part B rule): 33 near-copy pairs that are not exact copies are merged, which leaves 207 groups for 253 images (`results/ml_meta.json`). How much those copies would have flattered the scores (same models, plain stratified folds that ignore the groups):
 
 <!-- BEGIN:leakage -->
 | Features | Model | Accuracy, grouped CV | Accuracy, leaky CV | Difference |
 |---|---|---:|---:|---:|
-| raw pixels 64x64 | LogReg | 0.757 | 0.761 | +0.004 |
-| raw pixels 64x64 | SVM (RBF) | 0.803 | 0.809 | +0.006 |
-| raw pixels 64x64 | Random forest | 0.799 | 0.820 | +0.020 |
-| GLCM, min-max rescale | LogReg | 0.747 | 0.740 | -0.007 |
-| GLCM, min-max rescale | SVM (RBF) | 0.737 | 0.744 | +0.008 |
-| GLCM, min-max rescale | Random forest | 0.752 | 0.776 | +0.024 |
-| GLCM, direct uint8 cast (ablation) | LogReg | 0.759 | 0.768 | +0.009 |
-| GLCM, direct uint8 cast (ablation) | SVM (RBF) | 0.717 | 0.727 | +0.010 |
-| GLCM, direct uint8 cast (ablation) | Random forest | 0.721 | 0.748 | +0.028 |
+| raw pixels 64x64 | LogReg | 0.704 | 0.761 | +0.058 |
+| raw pixels 64x64 | SVM (RBF) | 0.750 | 0.809 | +0.059 |
+| raw pixels 64x64 | Random forest | 0.751 | 0.820 | +0.068 |
+| GLCM, min-max rescale | LogReg | 0.726 | 0.740 | +0.014 |
+| GLCM, min-max rescale | SVM (RBF) | 0.728 | 0.744 | +0.017 |
+| GLCM, min-max rescale | Random forest | 0.734 | 0.776 | +0.042 |
+| GLCM, direct uint8 cast (ablation) | LogReg | 0.743 | 0.768 | +0.025 |
+| GLCM, direct uint8 cast (ablation) | SVM (RBF) | 0.710 | 0.727 | +0.017 |
+| GLCM, direct uint8 cast (ablation) | Random forest | 0.693 | 0.748 | +0.055 |
 <!-- END:leakage -->
 
-The random forest gains the most from leaked duplicates (see the Difference column), because it can memorise an exact copy it saw in training.
+Raw pixels gain the most from leaked copies (see the Difference column), so a split that lets copies cross over flatters the raw-pixel baseline most.
 
 ## Part B: the larger 4-class dataset
 

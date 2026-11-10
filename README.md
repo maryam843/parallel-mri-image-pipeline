@@ -12,7 +12,7 @@ I take brain MRI images through six image filters and a texture-feature step, ru
 - **What it is:** a Python pipeline that loads brain MRI images, applies 6 filters to each one, turns the results into texture numbers (GLCM features), and trains simple classifiers on them.
 - **The problem:** the filtering is slow, so I split the work across CPU cores. The real question is how much time that saves, and why not more.
 - **How it works:** images in, then 6 filters per image in parallel worker processes, then 168 texture features per image, then cross-validated models compared with simple baselines. Out come CSV/JSON results, tables and charts.
-- **Main result:** on a 4-core machine the parallel version gives identical outputs and runs 2.34x faster on the real images, and up to 3.84x when every image has the same size, because very uneven image sizes are the main limit. The texture features do not beat a simple model on raw pixels (0.752 vs 0.803 accuracy).
+- **Main result:** on a 4-core machine the parallel version gives identical outputs and runs 2.34x faster on the real images, and up to 3.84x when every image has the same size, because very uneven image sizes are the main limit. The texture features do not beat a simple model on raw pixels (0.734 vs 0.750 accuracy).
 - **Part B:** on a larger public 4-class dataset, 542 of 1,600 Testing images have a near-duplicate candidate in Training (431 at pixel correlation >= 0.99), concentrated in the no-tumour class (358 of 400). On the provided split, GLCM + random forest reaches 0.872 accuracy and a small CNN 0.765; both are lower on the reduced test set (0.816 and 0.705), which also has a different class mix. The best filter speedup is 4.69x at 10 processes on a 6-core laptop (see [Part B](#part-b-a-larger-4-class-dataset)).
 - **Why it matters:** it shows how I find the slow part of a data pipeline, parallelise it safely, and check my own numbers before quoting them.
 
@@ -24,7 +24,7 @@ I take brain MRI images through six image filters and a texture-feature step, ru
 |---|---|---|
 | Part A speedup (4-vCPU cloud VM, fast mode, 40 images, 4 processes) | 2.34x with native image sizes, 3.24x with images resized to 256x256 | `results/scaling_summary.csv`, `results/scaling_summary_resized_256.csv` |
 | Parallel = sequential | identical outputs for every filter in every configuration, Part A and Part B | `results/parallel_equivalence*.json`, `results/part_b/parallel_equivalence.json` |
-| GLCM vs raw pixels (Part A, grouped 5-fold CV x 3 seeds) | GLCM + random forest 0.752 vs raw pixels + SVM 0.803 accuracy | `results/ml_cv_summary.csv` |
+| GLCM vs raw pixels (Part A, grouped 5-fold CV x 3 seeds) | GLCM + random forest 0.734 vs raw pixels + SVM 0.750 accuracy | `results/ml_cv_summary.csv` |
 | Part B leakage | 542 of 1,600 Testing images have a near-duplicate candidate in Training; no-tumour 358 of 400 | `results/part_b/leakage_by_class.json` |
 | Part B accuracy (3 seeds) | provided split: GLCM + random forest 0.872, small CNN 0.765; without flagged images: 0.816 and 0.705 (different class mix) | `results/part_b/per_class_summary.csv` |
 | Part B speedup (6-core laptop, 200 images at 256x256) | 4.69x at 10 processes, 3.48x at 6 | `results/part_b/scaling_summary.csv` |
@@ -81,23 +81,23 @@ On the 4-vCPU cloud VM, `Pool.map` reaches 2.34x on 4 processes with the images 
 ### Classifiers vs baselines
 
 <!-- BEGIN:ml -->
-253 images, 5-fold stratified CV grouped by file hash, seeds 0, 1, 2, mean +/- sd over 15 folds (`results/ml_cv_summary.csv`)
+253 images, 5-fold stratified CV grouped by exact and near copies, seeds 0, 1, 2, mean +/- sd over 15 folds (`results/ml_cv_summary.csv`)
 
 | Features | Model | Accuracy | Macro F1 | Tumour recall |
 |---|---|---:|---:|---:|
 | none | Majority class | 0.613 +/- 0.006 | 0.380 +/- 0.002 | 1.000 +/- 0.000 |
-| raw pixels 64x64 | LogReg | 0.757 +/- 0.041 | 0.741 +/- 0.042 | 0.817 +/- 0.087 |
-| raw pixels 64x64 | SVM (RBF) | 0.803 +/- 0.056 | 0.781 +/- 0.060 | 0.914 +/- 0.079 |
-| raw pixels 64x64 | Random forest | 0.799 +/- 0.056 | 0.782 +/- 0.062 | 0.882 +/- 0.057 |
-| GLCM, min-max rescale | LogReg | 0.747 +/- 0.058 | 0.722 +/- 0.067 | 0.845 +/- 0.057 |
-| GLCM, min-max rescale | SVM (RBF) | 0.737 +/- 0.063 | 0.707 +/- 0.073 | 0.850 +/- 0.072 |
-| GLCM, min-max rescale | Random forest | 0.752 +/- 0.070 | 0.731 +/- 0.075 | 0.834 +/- 0.094 |
-| GLCM, direct uint8 cast (ablation) | LogReg | 0.759 +/- 0.062 | 0.733 +/- 0.067 | 0.865 +/- 0.088 |
-| GLCM, direct uint8 cast (ablation) | SVM (RBF) | 0.717 +/- 0.068 | 0.684 +/- 0.081 | 0.837 +/- 0.075 |
-| GLCM, direct uint8 cast (ablation) | Random forest | 0.721 +/- 0.058 | 0.691 +/- 0.063 | 0.834 +/- 0.081 |
+| raw pixels 64x64 | LogReg | 0.704 +/- 0.094 | 0.678 +/- 0.106 | 0.776 +/- 0.115 |
+| raw pixels 64x64 | SVM (RBF) | 0.750 +/- 0.060 | 0.715 +/- 0.075 | 0.882 +/- 0.074 |
+| raw pixels 64x64 | Random forest | 0.751 +/- 0.067 | 0.726 +/- 0.077 | 0.847 +/- 0.073 |
+| GLCM, min-max rescale | LogReg | 0.726 +/- 0.074 | 0.698 +/- 0.082 | 0.834 +/- 0.068 |
+| GLCM, min-max rescale | SVM (RBF) | 0.728 +/- 0.076 | 0.696 +/- 0.085 | 0.847 +/- 0.088 |
+| GLCM, min-max rescale | Random forest | 0.734 +/- 0.076 | 0.712 +/- 0.080 | 0.822 +/- 0.099 |
+| GLCM, direct uint8 cast (ablation) | LogReg | 0.743 +/- 0.048 | 0.715 +/- 0.055 | 0.852 +/- 0.063 |
+| GLCM, direct uint8 cast (ablation) | SVM (RBF) | 0.710 +/- 0.061 | 0.675 +/- 0.063 | 0.843 +/- 0.088 |
+| GLCM, direct uint8 cast (ablation) | Random forest | 0.693 +/- 0.054 | 0.665 +/- 0.056 | 0.798 +/- 0.080 |
 <!-- END:ml -->
 
-**Plain conclusion:** the GLCM texture features do **not** beat raw pixels. The best raw-pixel models (SVM 0.803, random forest 0.799) are ahead of every GLCM model (0.717 to 0.759). All models beat the majority-class baseline (0.613). The rescale ablation and the leaky cross-validation comparison are in [docs/RESULTS.md](docs/RESULTS.md#rescale-ablation-and-leaky-cross-validation).
+**Plain conclusion:** the GLCM texture features do **not** beat raw pixels. The best raw-pixel models (SVM 0.750, random forest 0.751) are ahead of every GLCM model (0.693 to 0.743). All models beat the majority-class baseline (0.613). The rescale ablation and the leaky cross-validation comparison are in [docs/RESULTS.md](docs/RESULTS.md#rescale-ablation-and-leaky-cross-validation).
 
 ## Part B: a larger 4-class dataset
 

@@ -1,9 +1,11 @@
 {
-  "what": "stratified group K-fold CV (group = file SHA-256) on all images; 'leaky' rows ignore groups and exist only to measure leakage",
+  "what": "stratified group K-fold CV on all images; a group joins exact copies (same SHA-256) and near copies (dHash and pHash both within 4 bits); 'leaky' rows ignore groups and exist only to measure leakage",
   "mode": "fast",
   "n_images": 253,
   "n_unique_files": 228,
   "n_duplicate_files": 25,
+  "near_copy_pairs_merged": 33,
+  "n_cv_groups": 207,
   "class_counts": {
     "no": 98,
     "yes": 155
@@ -33,13 +35,13 @@
     "grouped_seed0": 0,
     "grouped_seed1": 0,
     "grouped_seed2": 0,
-    "leaky_seed0": 32,
-    "leaky_seed1": 36,
-    "leaky_seed2": 39
+    "leaky_seed0": 56,
+    "leaky_seed1": 58,
+    "leaky_seed2": 66
   },
   "feature_extraction": {
     "processes": 4,
-    "seconds": 107.792,
+    "seconds": 66.482,
     "strategy": "Pool.map"
   },
   "feature_sha256": {
@@ -64,7 +66,7 @@
   "machine": {
     "os": "Linux",
     "machine": "x86_64",
-    "cpu_model": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cpu_model": "Intel(R) Xeon(R) Processor",
     "os_cpu_count": 4,
     "physical_cores": 4,
     "usable_cores": 4,
@@ -79,6 +81,6 @@
       "matplotlib": "3.11.2"
     }
   },
-  "started_utc": "2026-10-21T02:59:43Z",
-  "finished_utc": "2026-10-21T03:02:57Z"
+  "started_utc": "2026-11-10T18:32:37Z",
+  "finished_utc": "2026-11-10T18:34:49Z"
 }
