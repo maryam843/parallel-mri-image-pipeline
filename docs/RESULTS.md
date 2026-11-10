@@ -2,7 +2,7 @@
 
 Every table here is generated from the files in `results/` by `scripts/update_readme_tables.py`, and `scripts/check_readme_claims.py` checks every table and number against those files. The short version is in the [README](../README.md).
 
-## Part A: the course dataset (253 images, 4-vCPU cloud VM)
+## Part A: the 253-image dataset (4-vCPU cloud VM)
 
 ### Where the time goes
 
@@ -40,7 +40,7 @@ Sequential pipeline, 5 images, fast mode, cProfile cumulative time (`results/pro
 
 ![Share of run time per stage](../figures/profile_share.png)
 
-With the course setting of sigmas 1-99, the Hessian filter takes 99.1 % of the time. Even in fast mode it is the biggest stage (57.0 %). All six filters run on the same image one after another, so splitting the work by image (not by filter) keeps every worker busy with one whole image.
+With the original setting of sigmas 1-99, the Hessian filter takes 99.1 % of the time. Even in fast mode it is the biggest stage (57.0 %). All six filters run on the same image one after another, so splitting the work by image (not by filter) keeps every worker busy with one whole image.
 
 ### Scaling
 
@@ -155,7 +155,7 @@ How much the duplicate files would have flattered the scores (same models, plain
 
 The random forest gains the most from leaked duplicates (see the Difference column), because it can memorise an exact copy it saw in training.
 
-## Part B: the larger 4-class dataset (6-core laptop)
+## Part B: the larger 4-class dataset
 
 **Not a medical tool.** These are exercise models on one public dataset. Nothing here should be used to make decisions about a patient.
 
@@ -221,7 +221,7 @@ Task `filters`: 200 images, fast mode, resized to 256x256, largest image = 0.5 %
 
 ![Part B speedup vs processes](../figures/part_b/scaling_speedup.png)
 
-This benchmark was run on its own with `python scripts/run_part_b_scaling.py`, using the notebook's settings; the free memory and the programs using the most memory at the start are in `results/part_b/scaling_environment.json`. On this laptop the pool reaches 3.48x with 6 processes, one per physical core, and 4.69x with 10. With 12 it is a little lower (4.48x): beyond 6 processes the workers share physical cores, so each extra process adds less. Each worker gets one BLAS thread (see `docs/DECISIONS.md`). Parallel outputs were identical to sequential outputs (`results/part_b/parallel_equivalence.json`). An earlier run inside the notebook, with more programs open and less free memory, had a much larger spread at 6 to 10 processes; its files are kept in `results/part_b/scaling_first_run/`.
+This benchmark was run on its own with `python scripts/run_part_b_scaling.py`, using the notebook's settings; the total and free memory at the start are in `results/part_b/scaling_environment.json`. On this laptop the pool reaches 3.48x with 6 processes, one per physical core, and 4.69x with 10. With 12 it is a little lower (4.48x): beyond 6 processes the workers share physical cores, so each extra process adds less. Each worker gets one BLAS thread (see `docs/DECISIONS.md`). Parallel outputs were identical to sequential outputs (`results/part_b/parallel_equivalence.json`). An earlier run inside the notebook, with more programs open and less free memory, had a much larger spread at 6 to 10 processes; its files are kept in `results/part_b/scaling_first_run/`.
 
 ### Per-class results
 

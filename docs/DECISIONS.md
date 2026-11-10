@@ -51,9 +51,9 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 - **Trade-off:** absolute times are for 40 images, not the full set.
 
 ## Duplicate-grouped stratified 5-fold CV, 3 seeds
-- **Choice:** `StratifiedGroupKFold` with the file's SHA-256 as the group; seeds 0, 1, 2; report mean +/- sd over the 15 folds.
-- **Alternatives:** a single train/test split; plain `StratifiedKFold`.
-- **Reason:** 25 files are exact copies, and a random split can put a copy on each side. A single 43-image test set is too small to compare models.
+- **Choice:** `StratifiedGroupKFold` where a group joins exact copies (same SHA-256) and near copies (dHash and pHash both within 4 of 64 bits, the Part B rule, `part_b.copy_groups`); seeds 0, 1, 2; report mean +/- sd over the 15 folds.
+- **Alternatives:** a single train/test split; plain `StratifiedKFold`; grouping exact copies only.
+- **Reason:** 25 files are exact copies, and the near-duplicate check built for Part B also finds near copies in this dataset (resized or re-saved versions of the same scan). A random split, or one that groups exact copies only, can put a copy on each side. A single 43-image test set is too small to compare models.
 - **Trade-off:** the sd across folds mixes fold and seed variation; it is a spread, not a confidence interval.
 
 ## "Leaky" CV kept only as a measurement
