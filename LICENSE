@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) Maryam Mahaboob
+Copyright (c) 2026 Maryam Mahaboob
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,7 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-The MIT licence covers my own code. Files marked "Provided by DSAI3202 course
-staff" remain the work of their authors; see the Credits section of README.md.
-The MRI dataset is not included and is not covered by this licence.
