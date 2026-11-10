@@ -5,7 +5,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from mri_pipeline import train
+from mri_pipeline import part_b, train
 
 
 @st.composite
@@ -89,3 +89,25 @@ def test_cross_validate_rows_and_seed_reproducible():
     assert a == b
     assert len(a) == 5 and {r["cv"] for r in a} == {"grouped"}
     assert sum(r["n_test"] for r in a) == 40
+
+
+def test_planted_near_copy_lands_in_the_same_fold():
+    """A slightly brighter copy of an image joins its group, so CV never splits the pair."""
+    rng = np.random.default_rng(0)
+    images = [rng.integers(0, 256, (64, 64), dtype=np.uint8) for _ in range(20)]
+    images.append(np.clip(images[0].astype(int) + 3, 0, 255).astype(np.uint8))
+    hashes = [f"file{i}" for i in range(len(images))]  # all files differ byte for byte
+    groups, near_pairs = part_b.copy_groups(images, hashes)
+    assert near_pairs == 1
+    assert groups[0] == groups[-1] and len(set(groups.tolist())) == len(images) - 1
+    y = np.array([i % 2 for i in range(20)] + [0])
+    for seed in (0, 1, 2):
+        for _, test_idx in train.make_splits(y, groups, seed):
+            assert (0 in test_idx) == (len(images) - 1 in test_idx)
+
+
+def test_copy_groups_join_exact_copies():
+    rng = np.random.default_rng(1)
+    images = [rng.integers(0, 256, (32, 32), dtype=np.uint8) for _ in range(4)]
+    groups, near_pairs = part_b.copy_groups(images, ["a", "b", "a", "c"])
+    assert groups.tolist() == [0, 1, 0, 2] and near_pairs == 0

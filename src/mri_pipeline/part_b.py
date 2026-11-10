@@ -166,6 +166,38 @@ def _groups(n: int, pairs: Sequence[tuple[int, int]]) -> list[list[int]]:
     return [m for m in members.values() if len(m) > 1]
 
 
+def copy_groups(
+    images: Sequence[np.ndarray], sha256s: Sequence[str], max_bits: int = NEAR_MAX_BITS
+) -> tuple[np.ndarray, int]:
+    """Group ids that keep exact copies and near copies together.
+
+    Exact copies share a SHA-256. Near copies are pairs whose dHash and pHash
+    both differ in at most ``max_bits`` of 64 bits (the candidate rule above).
+    Returns one group id per image, numbered in order of first appearance, and
+    the number of near-copy pairs that are not exact copies.
+    """
+    exact = io.duplicate_groups(list(sha256s))
+    d_pairs = {
+        (int(i), int(j))
+        for i, j, _ in close_pairs(as_hash_array([dhash(im) for im in images]), None, max_bits)
+    }
+    near = [
+        (int(i), int(j))
+        for i, j, _ in close_pairs(as_hash_array([phash(im) for im in images]), None, max_bits)
+        if (int(i), int(j)) in d_pairs
+    ]
+    first: dict[int, int] = {}
+    pairs = list(near)
+    for i, g in enumerate(exact.tolist()):
+        pairs.append((first.setdefault(g, i), i))
+    root = np.arange(len(images))
+    for members in _groups(len(images), pairs):
+        root[members] = min(members)
+    _, ids = np.unique(root, return_inverse=True)
+    near_only = sum(int(exact[i] != exact[j]) for i, j in near)
+    return ids.astype(np.int64), near_only
+
+
 def exact_duplicates(records: Mapping[str, Sequence[io.ImageRecord]]) -> dict[str, Any]:
     """Byte-identical files (same SHA-256) within each split and across splits."""
     out: dict[str, Any] = {}

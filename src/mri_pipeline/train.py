@@ -1,9 +1,10 @@
 """Models, duplicate-grouped cross-validation and baselines.
 
-The dataset contains exact-duplicate files, so a plain random split can put a
-copy on each side. Every split here is a ``StratifiedGroupKFold`` where the
-group is the file's SHA-256, so identical files always stay on the same side,
-and every source of randomness takes an explicit seed.
+The dataset contains exact and near-duplicate images, so a plain random split
+can put a copy on each side. Every split here is a ``StratifiedGroupKFold``
+where a group joins exact copies (same SHA-256) and near copies (see
+``part_b.copy_groups``), so copies always stay on the same side, and every
+source of randomness takes an explicit seed.
 """
 
 from __future__ import annotations

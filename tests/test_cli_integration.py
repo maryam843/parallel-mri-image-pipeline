@@ -170,6 +170,7 @@ def test_run_ml_command_and_reproducible(tmp_path, larger_synthetic_dir):
     assert meta_a["feature_sha256"] == meta_b["feature_sha256"]
     assert (outs[0] / "ml_cv_folds.csv").read_text() == (outs[1] / "ml_cv_folds.csv").read_text()
     assert meta_a["n_images"] == 21 and meta_a["n_duplicate_files"] == 1
+    assert meta_a["n_cv_groups"] == 20 and meta_a["near_copy_pairs_merged"] == 0
     assert all(
         v == 0
         for k, v in meta_a["groups_shared_between_train_and_test"].items()

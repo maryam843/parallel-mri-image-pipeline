@@ -24,7 +24,7 @@ from typing import Any
 
 import numpy as np
 
-from mri_pipeline import io
+from mri_pipeline import io, part_b
 from mri_pipeline.features import glcm_vector, image_features, raw_pixel_features
 from mri_pipeline.filters import FILTER_NAMES, apply_filters
 from mri_pipeline.parallel import (
@@ -420,7 +420,8 @@ def run_ml(
     records = io.list_images(data_dir)
     images = io.load_images(records)
     y = np.array([r.label for r in records], dtype=np.int64)
-    groups = io.duplicate_groups([r.sha256 for r in records])
+    hashes = [r.sha256 for r in records]
+    groups, near_pairs = part_b.copy_groups(images, hashes)
     processes = processes or available_cores()
 
     extracted = timed_run(
@@ -475,13 +476,16 @@ def run_ml(
     counts = io.count_by_class_and_extension(records)
     meta = {
         "what": (
-            "stratified group K-fold CV (group = file SHA-256) on all images; "
+            "stratified group K-fold CV on all images; a group joins exact copies "
+            "(same SHA-256) and near copies (dHash and pHash both within 4 bits); "
             "'leaky' rows ignore groups and exist only to measure leakage"
         ),
         "mode": mode,
         "n_images": len(records),
-        "n_unique_files": int(len(set(groups.tolist()))),
-        "n_duplicate_files": int(len(records) - len(set(groups.tolist()))),
+        "n_unique_files": len(set(hashes)),
+        "n_duplicate_files": len(hashes) - len(set(hashes)),
+        "near_copy_pairs_merged": near_pairs,
+        "n_cv_groups": int(len(set(groups.tolist()))),
         "class_counts": {c: int(sum(v.values())) for c, v in counts.items()},
         "extension_counts": counts,
         "seeds": list(seeds),

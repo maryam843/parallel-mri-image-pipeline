@@ -139,7 +139,8 @@ def ml_table(results: Path, cv: str = "grouped") -> str:
     rows = [r for r in read_csv(results / "ml_cv_summary.csv") if r["cv"] == cv]
     meta = json.loads((results / "ml_meta.json").read_text(encoding="utf-8"))
     out = [
-        f"{meta['n_images']} images, {meta['n_splits']}-fold stratified CV grouped by file hash, "
+        f"{meta['n_images']} images, {meta['n_splits']}-fold stratified CV grouped by exact and "
+        "near copies, "
         f"seeds {', '.join(map(str, meta['seeds']))}, mean +/- sd over {rows[0]['folds']} folds "
         "(`results/ml_cv_summary.csv`)",
         "",
