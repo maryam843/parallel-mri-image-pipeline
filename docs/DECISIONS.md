@@ -15,7 +15,7 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 - **Trade-off:** cProfile adds a little overhead; the filters are mostly compiled code, so the shares are still meaningful.
 
 ## Fast mode (Hessian sigmas 1-9) as the default
-- **Choice:** `--fast` by default, `--full` keeps the course filter setting, sigmas 1-99.
+- **Choice:** `--fast` by default, `--full` keeps the original filter setting, sigmas 1-99.
 - **Alternatives:** always run full mode.
 - **Reason:** full mode on all images takes hours on 4 cores; fast mode lets anyone reproduce every table in minutes.
 - **Trade-off:** fast-mode features and timings are not the same as full mode. The README labels every number with its mode, and the full-mode run is a labelled subset.
@@ -86,10 +86,10 @@ One short entry per choice: what I chose, what else I could have done, why, and 
 - **Reason:** the choice of rescale should be shown with numbers, not only argued.
 - **Trade-off:** one more feature set to explain.
 
-## Gabor filter left as in the course code
+## Gabor filter left as in the original code
 - **Choice:** keep `gabor(image, frequency=0.9)[1]` on the uint8 image.
 - **Alternatives:** convert to float first.
-- **Reason:** I found that it returns uint8, so negative responses wrap. I kept the course filter settings unchanged and noted it as a limitation instead.
+- **Reason:** I found that it returns uint8, so negative responses wrap. I kept the original filter settings unchanged and noted it as a limitation instead.
 - **Trade-off:** one feature group is computed on a wrapped response.
 
 ## Worker functions in `src/`, not in notebooks

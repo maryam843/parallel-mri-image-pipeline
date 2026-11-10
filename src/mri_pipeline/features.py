@@ -1,10 +1,10 @@
 """GLCM texture features and the raw-pixel baseline features.
 
-``glcm_features`` follows the ``compute_glcm_features`` helper provided by
-DSAI3202 course staff (UDST). Modified by me: yes (each filter output is
-min-max rescaled to 0-255 before the uint8 cast; the helper's direct cast
+``glcm_features`` follows the ``compute_glcm_features`` helper supplied with
+the original exercise. Changed here: each filter output is min-max rescaled to
+0-255 before the uint8 cast; the helper's direct cast
 ``(image * 255).astype(np.uint8)`` is kept as ``rescale_direct_cast`` and used
-only in a rescale ablation).
+only in a rescale ablation.
 """
 
 from __future__ import annotations

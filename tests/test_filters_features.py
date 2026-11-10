@@ -38,7 +38,7 @@ def test_full_and_fast_hessian_differ(image: np.ndarray) -> None:
 
 
 def test_filters_match_template_calls(image: np.ndarray) -> None:
-    """Same calls as notebook cell 8, so the refactor did not change results."""
+    """Same calls as the original filter code, so the refactor did not change results."""
     from scipy import ndimage as nd
     from skimage.filters import gabor, hessian, prewitt, sobel
     from skimage.filters.rank import entropy

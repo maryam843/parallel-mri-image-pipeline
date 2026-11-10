@@ -48,7 +48,7 @@ def _mode(parser: argparse.ArgumentParser) -> None:
         dest="mode",
         action="store_const",
         const="full",
-        help="Hessian sigmas 1-99 as in the course template (hours on all images)",
+        help="Hessian sigmas 1-99, the original setting (hours on all images)",
     )
     parser.set_defaults(mode="fast")
 

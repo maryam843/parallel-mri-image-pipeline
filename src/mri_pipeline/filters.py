@@ -1,13 +1,14 @@
-"""The six image filters from the course template, as module-level functions.
+"""The six image filters, as module-level functions.
 
-Provided by DSAI3202 course staff (UDST). Modified by me: yes (split into one
-module-level function per filter so they can be pickled by ``multiprocessing``
-under the "spawn" start method; the Hessian sigma range is a parameter with a
-documented fast mode; filter parameters are unchanged).
+The six filter calls and their parameters were supplied with the original
+exercise. Changed here: split into one module-level function per filter so they
+can be pickled by ``multiprocessing`` under the "spawn" start method, and the
+Hessian sigma range is a parameter with a documented fast mode. The filter
+parameters are unchanged.
 
 Known quirk kept on purpose: ``skimage.filters.gabor`` on a uint8 image returns
 uint8, so negative responses of the imaginary part wrap around. I kept the
-course filter settings as they are (see docs/DECISIONS.md).
+original filter settings as they are (see docs/DECISIONS.md).
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from skimage.morphology import disk
 
 FILTER_NAMES = ("Input", "Entropy", "Gaussian", "Sobel", "Gabor", "Hessian", "Prewitt")
 
-# The template used sigmas=range(1, 100, 1). That single filter takes most of
+# The original setting is sigmas=range(1, 100, 1). That single filter takes most of
 # the run time, so the default here is a fast mode with sigmas 1-9.
 HESSIAN_SIGMAS = {"fast": range(1, 10), "full": range(1, 100)}
 
