@@ -27,7 +27,6 @@ from mri_pipeline.report import render_all
 
 # Numbers that describe the method or the setup, not a measured result.
 STRUCTURAL = {  # fmt: skip
-    "3202": "course code DSAI3202",
     "3.12": "Python version",
     "1": "count/sigma start",
     "2": "count",

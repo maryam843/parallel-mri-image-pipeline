@@ -1,82 +1,40 @@
 # Parallel MRI image pipeline
 
 [![CI](https://github.com/maryam843/parallel-mri-image-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/maryam843/parallel-mri-image-pipeline/actions/workflows/ci.yml)
-<!-- While the repo is private, this badge only renders for people who have access to it. -->
 
-Built for the DSAI3202 Parallel & Distributed Computing course at UDST.
-
-I take brain MRI images through six image filters and a texture-feature step, run that work in parallel with Python `multiprocessing`, and measure how much faster it gets and whether the features are any good.
-
-## In plain English
-
-- **What it is:** a Python pipeline that loads brain MRI images, applies 6 filters to each one, turns the results into texture numbers (GLCM features), and trains simple classifiers on them.
-- **The problem:** the filtering is slow, so I split the work across CPU cores. The real question is how much time that saves, and why not more.
-- **How it works:** images in, then 6 filters per image in parallel worker processes, then 168 texture features per image, then cross-validated models compared with simple baselines. Out come CSV/JSON results, tables and charts.
-- **Main result:** on a 4-core machine the parallel version gives identical outputs and runs 2.34x faster on the real images, and up to 3.84x when every image has the same size, because very uneven image sizes are the main limit. The texture features do not beat a simple model on raw pixels (0.734 vs 0.750 accuracy).
-- **Part B:** on a larger public 4-class dataset, 542 of 1,600 Testing images have a near-duplicate candidate in Training (431 at pixel correlation >= 0.99), concentrated in the no-tumour class (358 of 400). On the provided split, GLCM + random forest reaches 0.872 accuracy and a small CNN 0.765; both are lower on the reduced test set (0.816 and 0.705), which also has a different class mix. The best filter speedup is 4.69x at 10 processes on a 6-core laptop (see [Part B](#part-b-a-larger-4-class-dataset)).
-- **Why it matters:** it shows how I find the slow part of a data pipeline, parallelise it safely, and check my own numbers before quoting them.
-
-> Demo video: **placeholder**, to be recorded by me later (under 10 MB). Until then, the walkthrough notebook `notebooks/walkthrough.ipynb` shows every step.
+A Python pipeline that runs six image filters and GLCM texture features over brain MRI images in parallel with `multiprocessing`, checks that the parallel output is identical to the sequential run, tests the features against baselines, and checks a public dataset's train/test split for near duplicates.
 
 ## Key results
 
-| Result | Numbers | Source |
-|---|---|---|
-| Part A speedup (4-vCPU cloud VM, fast mode, 40 images, 4 processes) | 2.34x with native image sizes, 3.24x with images resized to 256x256 | `results/scaling_summary.csv`, `results/scaling_summary_resized_256.csv` |
-| Parallel = sequential | identical outputs for every filter in every configuration, Part A and Part B | `results/parallel_equivalence*.json`, `results/part_b/parallel_equivalence.json` |
-| GLCM vs raw pixels (Part A, grouped 5-fold CV x 3 seeds) | GLCM + random forest 0.734 vs raw pixels + SVM 0.750 accuracy | `results/ml_cv_summary.csv` |
-| Part B leakage | 542 of 1,600 Testing images have a near-duplicate candidate in Training; no-tumour 358 of 400 | `results/part_b/leakage_by_class.json` |
-| Part B accuracy (3 seeds) | provided split: GLCM + random forest 0.872, small CNN 0.765; without flagged images: 0.816 and 0.705 (different class mix) | `results/part_b/per_class_summary.csv` |
-| Part B speedup (6-core laptop, 200 images at 256x256) | 4.69x at 10 processes, 3.48x at 6 | `results/part_b/scaling_summary.csv` |
+- **Speedup:** 2.34x on 4 processes against the sequential loop (40 images at native sizes, 3 runs), and 3.24x when the same images are resized to 256x256, so uneven image sizes are the main limit. Parallel output was identical to sequential output for every filter in every configuration.
+- **Texture features give no clear gain:** GLCM + random forest reaches 0.734 accuracy and raw pixels + SVM 0.750 (majority-class baseline 0.613), with exact and near copies kept in one fold. The best texture model (0.743) and the best raw-pixel model (0.751) are well inside the fold-to-fold spread.
+- **Leakage in a public dataset:** in the larger 4-class dataset, 542 of 1,600 Testing images have a near-duplicate candidate in Training (431 with a pixel correlation of at least 0.99), including 358 of the 400 no-tumour images.
+- **Part B models:** GLCM + random forest 0.872 and a small CNN 0.765 on the provided split; 0.816 and 0.705 on the 1058 Testing images without a near-duplicate candidate, a set that also has a different class mix.
 
-## The problem
+## Speedup chart
 
-The course gave six scikit-image filters (entropy, Gaussian, Sobel, Gabor, Hessian, Prewitt) to apply to every MRI image, followed by GLCM texture features and three classifiers. With the course setting for the Hessian filter (sigmas 1-99), one image at a time takes about 35 s per image in my profile, so the whole dataset takes over an hour. The task was to make it faster with parallel processing and still get a working classifier.
+![Speedup of the filter stage against worker processes on a 4-vCPU VM: native sizes, resized 256x256, and one full-mode run on a different VM](figures/scaling_speedup.png)
+
+**Tools:** Python, multiprocessing, NumPy, scikit-image, OpenCV, scikit-learn, PyTorch, pytest, Hypothesis, GitHub Actions
 
 ## Data
 
-- **Source:** the public Kaggle dataset "Brain MRI Images for Brain Tumor Detection" by Navoneel Chakrabarty: <https://www.kaggle.com/datasets/navoneel/brain-mri-images-for-brain-tumor-detection>. Please cite that page if you use it.
-- **Size:** 253 images, 155 in `yes/` (tumour) and 98 in `no/`. Mixed file types (`.jpg`, `.JPG`, `.jpeg`, `.png`) and very different image sizes.
-- **Duplicates:** 25 files are exact byte copies of other files (228 unique files, 22 duplicate groups, none across classes).
-- **Licence:** the licence is not clearly stated on the source page, so **the images are not included in this repo** and are not redistributed. They are medical images, so I treat them as sensitive.
-- **Get it:** download the dataset from Kaggle and put the two folders at `data/brain_tumor_dataset/yes` and `data/brain_tumor_dataset/no` (the `data/` folder is git-ignored).
-- **Check your copy:** `docs/dataset_manifest.csv` lists every file name with its SHA-256 and class. Run `python -m mri_pipeline verify-data` to compare your copy with it.
+The images are not in this repo: they are medical images, the Part A licence is not an open one, and neither dataset is redistributed here. Credits and licences are in [CREDITS.md](CREDITS.md).
 
-## Method
+- **Part A:** "Brain MRI Images for Brain Tumor Detection" by Navoneel Chakrabarty, Kaggle: <https://www.kaggle.com/datasets/navoneel/brain-mri-images-for-brain-tumor-detection>. Kaggle lists the licence as "Data files © Original Authors". 253 images, 155 tumour (`yes/`) and 98 no tumour (`no/`), mixed file extensions and very different sizes. 25 files are exact copies (228 unique files), and 33 more pairs are near copies. Download it and put the two folders at `data/brain_tumor_dataset/yes` and `data/brain_tumor_dataset/no` (git-ignored). `python -m mri_pipeline verify-data` compares a local copy with the SHA-256 list in `docs/dataset_manifest.csv`.
+- **Part B:** "Brain Tumor MRI Dataset" by Masoud Nickparvar, Kaggle, version 2: <https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset>. Licence CC BY 4.0. 7,200 images in 4 classes (glioma, meningioma, no tumour, pituitary), 1,400 per class in Training and 400 per class in Testing. Download it, keep it outside the repo and point `MRI_PART_B_DATA_DIR` at the folder that holds `Training/` and `Testing/`.
 
-```mermaid
-flowchart LR
-    A[MRI images<br/>yes/ and no/] --> B[Loader<br/>all extensions, SHA-256 per file]
-    B --> C{{Pool of worker processes<br/>one task = one image}}
-    C --> D[6 filters<br/>entropy, Gaussian, Sobel,<br/>Gabor, Hessian, Prewitt]
-    D --> E[Min-max rescale to 0-255<br/>per filter output]
-    E --> F[GLCM: 6 properties x 4 angles<br/>x 7 images = 168 features]
-    F --> G[Stratified 5-fold CV<br/>grouped by file hash, 3 seeds]
-    B --> H[Raw pixels 64x64<br/>baseline]
-    H --> G
-    G --> I[results/*.csv, *.json<br/>figures/*.png]
-```
+## Approach
 
-1. **Profile first.** cProfile on 5 images shows where the time goes.
-2. **Parallelise per image.** Each image is independent, so one task is one image with all six filters. The worker functions live in `src/mri_pipeline/`, so they also work with the `spawn` start method (Windows, macOS).
-3. **Measure scaling.** A fixed, class-balanced subset of 40 unique images; sequential loop vs `Pool.map` on 1, 2, 3 and 4 processes; 3 runs each, interleaved; mean +/- sd. I also compare chunk sizes and `imap_unordered`, and check that parallel outputs are identical to sequential outputs for every filter.
-4. **Evaluate the features honestly.** All 253 images, stratified 5-fold cross-validation where duplicate files always stay in the same fold, 3 seeds, three models, compared with a majority-class baseline and the same models on raw pixels.
-
-Modes: `--fast` (default) uses Hessian sigmas 1-9; `--full` uses sigmas 1-99 as in the course setting. Every table says which mode it used. Fast mode changes the Hessian output, so fast-mode and full-mode features and timings are not the same.
+1. **Profile first.** cProfile on 5 images: with the original Hessian setting (sigmas 1 to 99) the Hessian filter takes 99.1 % of the sequential time, and still 57.0 % in fast mode (sigmas 1 to 9). All six filters run on each image in turn, so the work is split by image, not by filter.
+2. **One task per image.** `Pool.map` sends each image to a worker that runs entropy, Gaussian, Sobel, Gabor, Hessian and Prewitt. The worker functions live in `src/`, so they also work with the `spawn` start method (Windows, macOS).
+3. **Measure scaling fairly.** A fixed, class-balanced subset of 40 unique images; the plain sequential loop against 1 to 4 processes, 3 interleaved runs, timed including pool start-up. Chunk sizes and `imap_unordered` are compared, and every parallel output is checked array by array against the sequential one.
+4. **Features.** Each filter output is min-max rescaled to 0-255, then 6 GLCM properties x 4 angles on the input and the 6 filtered images give 168 features per image. A direct `uint8` cast is kept only as an ablation, because it inverts or wraps some filter outputs.
+5. **Evaluate without leakage.** Stratified 5-fold cross-validation x 3 seeds, where each group joins exact copies (same SHA-256) and near copies (dHash and pHash both within 4 bits), giving 207 groups for 253 images. Baselines: the majority class and the same three models on raw 64x64 pixels.
+6. **Part B.** The same filters and features on the 4-class dataset: count check, exact and near-duplicate check between Training and Testing with a pixel check of each candidate, then GLCM + random forest and a small CNN (128x128 grayscale, 20 epochs, CPU, deterministic training) scored on the provided Testing split and on Testing without the flagged images.
+7. **Numbers come from files.** The tables below are generated from `results/`, and `scripts/check_readme_claims.py` (run in CI) fails if a number in this README or in `docs/RESULTS.md` cannot be found in `results/`.
 
 ## Results
-
-All tables, charts and the full reasoning behind the numbers below are in [docs/RESULTS.md](docs/RESULTS.md).
-
-### Where the time goes
-
-With the course setting (Hessian sigmas 1-99), the Hessian filter takes 99.1 % of the sequential run time; even in fast mode it is the biggest stage (57.0 %). All six filters run on one image after another, so I split the work by image, not by filter. Profile tables and chart: [docs/RESULTS.md](docs/RESULTS.md#where-the-time-goes).
-
-### Scaling
-
-![Speedup vs processes](figures/scaling_speedup.png)
-
-On the 4-vCPU cloud VM, `Pool.map` reaches 2.34x on 4 processes with the images at their native sizes and 3.24x when every image is resized to 256x256, so very uneven image sizes are the main limit. Chunk size 1 helps (2.88x instead of 2.38x). Full mode with equal-sized images reached 3.84x, but that was a single run on a different virtual machine, so I do not compare it directly. Parallel outputs were identical to sequential outputs for every filter in every configuration. All scaling and strategy tables, and why the speedups differ: [docs/RESULTS.md](docs/RESULTS.md#scaling).
 
 ### Classifiers vs baselines
 
@@ -97,25 +55,9 @@ On the 4-vCPU cloud VM, `Pool.map` reaches 2.34x on 4 processes with the images 
 | GLCM, direct uint8 cast (ablation) | Random forest | 0.693 +/- 0.054 | 0.665 +/- 0.056 | 0.798 +/- 0.080 |
 <!-- END:ml -->
 
-**Plain conclusion:** the GLCM texture features do **not** beat raw pixels. The best raw-pixel models (SVM 0.750, random forest 0.751) are ahead of every GLCM model (0.693 to 0.743). All models beat the majority-class baseline (0.613). The rescale ablation and the leaky cross-validation comparison are in [docs/RESULTS.md](docs/RESULTS.md#rescale-ablation-and-leaky-cross-validation).
+The texture features do not give a clear gain over raw pixels: every model beats the majority baseline, and the gaps between the GLCM and raw-pixel models are smaller than the fold-to-fold spread.
 
-## Part B: a larger 4-class dataset
-
-Here I run the same pipeline on the "Brain Tumor MRI Dataset" (Version 2, Kaggle, see Credits): glioma, meningioma, pituitary and no tumour, with a Training/Testing split provided by the author. Everything ran headless on my laptop CPU through `notebooks/part_b_larger_dataset_colab.ipynb` (`python scripts/run_part_b.py`). The main result uses the provided split as it is. The same notebook still runs on Colab.
-
-**Not a medical tool.** These are exercise models on one public dataset. Nothing here should be used to make decisions about a patient.
-
-### Counts and duplicates
-
-All 7,200 expected images are there. No file is shared byte for byte between Training and Testing, but 171 extra exact copies remain inside Training and 16 inside Testing. Near duplicates (dHash and pHash both within 4 bits) are the bigger issue: 542 of 1,600 Testing images have a candidate in Training, 431 of them with a pixel correlation of at least 0.99, and 358 of the 400 no-tumour test images are among them. 4 cross-split candidate pairs and 4 pairs within Testing have different class labels, which may point to labelling errors; I did not check those pairs by eye. Count, duplicate and per-class leakage tables: [docs/RESULTS.md](docs/RESULTS.md#duplicate-check).
-
-### Speedup of the filter stage
-
-On the 6-core laptop the pool reaches 3.48x with 6 processes and 4.69x with 10; with 12 it is a little lower (4.48x), because beyond 6 processes the workers share physical cores. This benchmark was run on its own with `python scripts/run_part_b_scaling.py`. An earlier run inside the notebook, with more programs open and less free memory, had a much larger spread at 6 to 10 processes; its files are kept in `results/part_b/scaling_first_run/`. Table and chart: [docs/RESULTS.md](docs/RESULTS.md#speedup-of-the-filter-stage).
-
-### GLCM + random forest vs a small CNN
-
-Both models are trained on the whole Training split and scored on the Testing split with seeds 0, 1 and 2. The CNN is small on purpose (128x128 grayscale input, 20 epochs, no validation split), so that it trains on a CPU. The second evaluation leaves out the Testing images that have a near-duplicate candidate in Training.
+### Part B: GLCM + random forest vs a small CNN
 
 <!-- BEGIN:part_b_models -->
 Trained on the Training split, seeds 0, 1, 2, mean +/- sd over seeds (`results/part_b/per_class_summary.csv`)
@@ -128,32 +70,16 @@ Trained on the Training split, seeds 0, 1, 2, mean +/- sd over seeds (`results/p
 | Small CNN | Testing without cross-split duplicate candidates | 1058 | 0.705 +/- 0.142 | 0.692 +/- 0.132 |
 <!-- END:part_b_models -->
 
-![Part B confusion matrices](figures/part_b/confusion_matrices.png)
+The random forest is ahead of the small CNN and far more stable across seeds. Glioma is the hardest class for the random forest (recall 0.673); for the CNN, glioma and pituitary tie at 0.601. Only 42 of the 400 no-tumour Testing images are left in the second test set, so its lower scores mix fewer near duplicates with a different class mix.
 
-**Plain conclusion:** on this split, my GLCM features with a random forest (0.872) beat my small CNN (0.765), and the CNN varies much more between seeds. Glioma is the hardest class for both: the random forest finds 0.673 of the glioma images and the CNN 0.601. Both models score lower on the reduced test set (0.816 and 0.705 on 1058 images), but that set is not a fair copy of the first: only 42 of the 400 no-tumour test images remain, so the drop mixes fewer near duplicates with a different class mix, and I cannot separate the two with these runs. This is a likely reason, though I have not tested it, for the random forest's 1.000 recall on no-tumour images: 358 of those 400 test images (a share of 0.895) have a near-duplicate candidate in Training (`results/part_b/leakage_by_class.json`), so many of them are close to images the model has already seen. The scores on the provided split should not be read as scores on unseen patients. I did not try a pretrained network. Per-class table, figures and step times: [docs/RESULTS.md](docs/RESULTS.md#per-class-results).
-
-## Design choices and pitfalls handled
-
-| Pitfall | What would go wrong | What the code does | Test |
-|---|---|---|---|
-| File extensions | A pattern like `glob('*.jpg')` is case-sensitive on Linux and macOS and never matches `.jpeg` or `.png`. On this dataset it would find 171 of 253 images and silently miss 82 (32 %), which also changes the class balance. | Checks the lower-cased extension and hashes every file. | `tests/test_io.py` |
-| Duplicate files | 25 files are exact copies, so a random split can put a copy on each side and inflate the scores. | `StratifiedGroupKFold` with the file hash as the group. | `tests/test_train.py` (includes a property test) |
-| Rescaling filter outputs | A direct cast `(image * 255).astype(np.uint8)` inverts uint8 images (200 becomes 56) and wraps float outputs above 1 (entropy 3.7 becomes 175). | Min-max rescale of each filter output to 0-255; the direct cast is kept only for the ablation. | `tests/test_filters_features.py` (includes a property test) |
-| One small split | A single small test split moves by several points when one image changes, and gives no spread. | 5-fold cross-validation x 3 seeds, every shuffle seeded, with baselines. | `tests/test_cli_integration.py` (same seed gives identical results) |
-| Spawn start method | Worker functions defined inside a notebook only work with `fork` (Linux). | Workers live in `src/`; scripts use `__main__` guards. | `tests/test_parallel.py` |
-| Hand-typed numbers | A number typed into the README can drift from the measurement. | The tables in the README and `docs/RESULTS.md` are generated from `results/`; `scripts/check_readme_claims.py` fails on any number in either file that is not found there. | CI job |
+**Speedups in detail:** chunk size 1 raises the 4-process speedup to 2.88x. In full mode (Hessian sigmas 1 to 99, 16 images, one run each) the speedup is 1.90x at native sizes and 3.84x at 256x256, the second on a different VM type. On a 6-core, 12-thread laptop the Part B filter stage (200 images at 256x256) reaches 3.48x with 6 processes and 4.69x with 10. All tables, figures and the reasoning behind each number: [docs/RESULTS.md](docs/RESULTS.md). Design decisions: [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## Limitations
 
-- Small dataset (253 images, 228 unique). Differences of a few points between models are within the fold-to-fold spread.
-- **Not a clinical tool.** Nothing here should be used to make decisions about a patient.
-- Timings are machine-specific, and two kinds of machine were used. Part A ran on 4-vCPU cloud virtual machines: the fast-mode runs and the full-mode scaling runs came from two different CPU models, so they were not the same machine. They report 1 thread per core, but I cannot see how their cores map to physical hardware. Part B ran on a 6-core laptop (12 logical cores).
-- Fast mode (Hessian sigmas 1-9) is not the same computation as full mode; the full-mode numbers come from a 16-image subset and a single run.
-- The Gabor filter runs on uint8 input and returns uint8, so its negative responses wrap. I kept the course filter settings unchanged and documented it in `docs/DECISIONS.md`.
-- I did not try a CNN on the 253-image dataset. Part B has a small CNN baseline on the larger dataset, trained from scratch on a CPU; it is a baseline, not a tuned model.
-- Part B uses one provided split and three seeds, so the spread shows training noise only, not how the scores would change on another split or on scans from another hospital. The Part B speedup comes from a separate re-run of the benchmark; the first, noisier run (inside the notebook, with more programs open) is kept in `results/part_b/scaling_first_run/`. The other Part B timings come from the notebook run, with other programs open on the laptop.
-
-## What I learned (to be written by me)
+- Part A is small (253 images, 207 copy groups) and the models use default settings without tuning, so gaps of a few points between models are not meaningful.
+- The Part B provided split shares near duplicates between Training and Testing, so 0.872 overstates performance on new images, and the second test set is not a clean replacement because its class mix differs. The CNN is a small baseline trained from scratch and varies a lot by seed (0.765 +/- 0.092).
+- Timings come from three machines (two 4-vCPU cloud VM types and a 6-core laptop) and change with the machine. The full-mode speedups are single runs on 16 images.
+- Not a medical tool. Each part uses one public dataset with no external validation, and nothing here should be used to make decisions about a patient.
 
 ## How to run
 
@@ -162,11 +88,11 @@ Python 3.12. From the repository root:
 ```bash
 python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt --extra-index-url https://download.pytorch.org/whl/cpu
 pip install -e . --no-deps
 ```
 
-Without the real data (synthetic images, works anywhere):
+Without the real data (synthetic images, runs anywhere):
 
 ```bash
 python -m mri_pipeline make-synthetic --out data_synthetic --per-class 8
@@ -174,61 +100,57 @@ python -m mri_pipeline run-scaling --data-dir data_synthetic --out-dir results/s
 python -m mri_pipeline run-ml --fast --data-dir data_synthetic --out-dir results/scratch --seeds 0 --folds 3
 ```
 
-With the real data in `data/brain_tumor_dataset/` (this reproduces `results/`):
+With the Part A images in `data/brain_tumor_dataset/`. Every output goes to the git-ignored `results/scratch/`, so the committed `results/` stays the reference:
 
 ```bash
 python -m mri_pipeline verify-data
-python -m mri_pipeline inventory --write-manifest docs/dataset_manifest.csv
-python -m mri_pipeline profile --fast --images 5
-python -m mri_pipeline profile --full --images 5
-python -m mri_pipeline run-scaling --fast --images 40 --processes 1 2 3 4 --repeats 3
-python -m mri_pipeline run-scaling --fast --images 40 --processes 1 2 3 4 --repeats 3 --no-strategies --resize 256 --tag resized_256
-python -m mri_pipeline run-scaling --fast --images 40 --processes 1 2 3 4 --repeats 3 --no-strategies --task features --tag features_task
-python -m mri_pipeline run-ml --fast --seeds 0 1 2
-python -m mri_pipeline run-scaling --full --images 16 --processes 1 2 3 4 --repeats 1 --no-strategies --resize 256 --tag full_resized_256
-python -m mri_pipeline run-scaling --full --images 16 --processes 1 2 3 4 --repeats 1 --no-strategies --tag full_subset
-python scripts/make_figures.py
-python scripts/update_readme_tables.py
+python -m mri_pipeline profile --full --images 5 --out-dir results/scratch
+python -m mri_pipeline run-scaling --fast --images 40 --processes 1 2 3 4 --repeats 3 --out-dir results/scratch
+python -m mri_pipeline run-scaling --fast --images 40 --processes 1 2 3 4 --repeats 3 --no-strategies --resize 256 --tag resized_256 --out-dir results/scratch
+python -m mri_pipeline run-ml --fast --seeds 0 1 2 --out-dir results/scratch
+python scripts/make_figures.py --results results/scratch --out results/scratch/figures
 ```
 
-Part B (download the dataset from Kaggle first, read its licence, keep it outside the repo). The CNN needs PyTorch from `requirements-part-b.txt`, which `requirements-dev.txt` already includes; on Linux add `--extra-index-url https://download.pytorch.org/whl/cpu` to get the CPU build:
+Part B (`MRI_PART_B_OUT` must be an absolute path; `run_part_b.py` also re-saves the notebook, and `git checkout notebooks/` restores it):
 
 ```bash
-export MRI_PART_B_LICENCE=CC-BY-4.0                # confirms you have read the licence
-export MRI_PART_B_DATA_DIR=/path/to/archive        # the folder with Training/ and Testing/
-python scripts/run_part_b.py                       # writes results/part_b/ and figures/part_b/
-python scripts/check_duplicate_candidates.py       # pixel check of the near-duplicate candidates
-python scripts/run_part_b_scaling.py               # re-run only the speedup benchmark
+export MRI_PART_B_LICENCE=CC-BY-4.0
+export MRI_PART_B_DATA_DIR=/path/to/folder/with/Training/and/Testing
+export MRI_PART_B_OUT="$PWD/results/scratch"
+python scripts/run_part_b.py --torch-threads 4
+python scripts/check_duplicate_candidates.py --results results/scratch/results/part_b
+python scripts/run_part_b_scaling.py --results results/scratch/part_b_scaling --figures results/scratch/part_b_scaling_figures
 ```
 
-The walkthrough notebook runs on synthetic images by default. To execute it and save its outputs:
+Tests and checks, as CI runs them:
 
 ```bash
-python scripts/run_walkthrough.py                       # synthetic images
-MRI_USE_REAL_DATA=1 python scripts/run_walkthrough.py   # real images in data/
-```
-
-Checks:
-
-```bash
-pytest                                        # all tests
-MRI_START_METHOD=spawn pytest                 # force the spawn start method
-pytest --cov --cov-fail-under=85              # coverage of src/
 ruff check . && ruff format --check .
-python scripts/check_readme_claims.py         # every number in README.md and docs/RESULTS.md is in results/
-python scripts/pii_scan.py --history          # secrets / personal data in the whole history
+pytest --cov --cov-fail-under=85
+MRI_START_METHOD=spawn pytest
+python scripts/check_readme_claims.py
+python scripts/pii_scan.py --history
 ```
 
-`python -m mri_pipeline --help` lists every command. The `scripts/run_scaling.py` and `scripts/run_ml.py` wrappers take the same options.
+`python -m mri_pipeline --help` lists every command and option.
 
-## Credits
+## Repo structure
 
-- **Course staff, DSAI3202 (UDST):** the six filter calls and their parameters, and the `compute_glcm_features` helper. `src/mri_pipeline/filters.py` and the GLCM part of `src/mri_pipeline/features.py` are based on them, and the header of each file says "Provided by DSAI3202 course staff (UDST). Modified by me: yes" and what I changed.
-- **My own work:** the parallel pipeline, the experiments, the evaluation, the tests, the scripts, the notebooks and the documentation.
-- **Dataset:** Navoneel Chakrabarty, "Brain MRI Images for Brain Tumor Detection", Kaggle (not redistributed here).
-- **Part B dataset:** "Brain Tumor MRI Dataset" by Masoud Nickparvar, Kaggle, Version 2: <https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset>. Licence: CC BY 4.0 (<https://creativecommons.org/licenses/by/4.0/>). The author built it from three source datasets: figshare, SARTAJ and Br35H. The images are not redistributed here; resizing and normalisation are done by my code.
-- **Libraries:** NumPy, SciPy, scikit-image, scikit-learn, OpenCV, matplotlib, PyTorch (Part B).
+```
+src/mri_pipeline/   filters, GLCM features, parallel runners, CV, Part B checks, CNN, CLI
+scripts/            run wrappers, figures, README tables, claims check, PII scan
+tests/              unit, property and integration tests on synthetic images
+notebooks/          walkthrough.ipynb, part_b_larger_dataset_colab.ipynb
+results/            committed CSV/JSON results (Part B in results/part_b/)
+figures/            charts drawn from results/
+docs/               RESULTS.md, DECISIONS.md, dataset_manifest.csv
+CREDITS.md          supplied code, datasets, libraries
+```
 
-## Licence
+## Licence and credits
 
-My code is under the MIT licence (`LICENSE`). Course-provided parts remain the work of their authors (see Credits). The datasets are not part of this repo and are not covered by the licence.
+My code is under the MIT licence ([LICENSE](LICENSE)). The six filter calls and their parameters, and the `compute_glcm_features` helper, were supplied with the original exercise; `src/mri_pipeline/filters.py` and the GLCM part of `src/mri_pipeline/features.py` are based on them, those supplied parts remain the work of their authors, and the header of each file lists what was changed. Full credits: [CREDITS.md](CREDITS.md).
+
+- Navoneel Chakrabarty, "Brain MRI Images for Brain Tumor Detection", Kaggle (Part A data, not redistributed).
+- Masoud Nickparvar, "Brain Tumor MRI Dataset", Kaggle, version 2, CC BY 4.0, built from the figshare, SARTAJ and Br35H datasets (Part B data, not redistributed).
+- Libraries: NumPy, SciPy, scikit-image, scikit-learn, OpenCV, matplotlib and PyTorch.
